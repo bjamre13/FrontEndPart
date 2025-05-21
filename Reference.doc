@@ -1,213 +1,27 @@
-import React from 'react';
-import './CustomerDashboard.css';
-
-type TicketStatus = 'New' | 'In Progress' | 'Pending' | 'Resolved' | 'Closed';
-
-interface User {
-  id: string;
-  name: string;
-}
-
-interface Ticket {
-  id: string;
-  title: string;
-  description: string;
-  status: TicketStatus;
-  createdBy: User;
-  priority: 'Low' | 'Medium' | 'High';
-  age: string;
-}
-
-export default function CustomerDashboard() {
-  const user: User = { id: 'customer001', name: 'Alice Smith' };
-
-  const tickets: Ticket[] = [
-    { id: '1245', title: 'Login issue with mobile app', description: '', status: 'In Progress', createdBy: user, priority: 'High', age: '1d 4h' },
-    { id: '1242', title: 'Password reset not working', description: '', status: 'Pending', createdBy: user, priority: 'Medium', age: '4h 23m' },
-    { id: '1238', title: 'Billing question about subscription', description: '', status: 'New', createdBy: user, priority: 'High', age: '18m' },
-  ];
-
-  const assignedCount = tickets.length;
-  const urgentCount = tickets.filter(t => t.priority === 'High').length;
-  const pendingCount = tickets.filter(t => t.status === 'Pending').length;
-  const resolvedCount = tickets.filter(t => t.status === 'Resolved').length;
-
-  return (
-    <div className="customer-dashboard">
-      <aside className="sidebar">
-        <h2>Agent Tools</h2>
-        <ul>
-          <li>My Assigned Tickets</li>
-          <li>All Open Tickets</li>
-          <li>Search Tickets</li>
-          <li>My Performance</li>
-          <li>Calendar/Reminders</li>
-        </ul>
-      </aside>
-
-      <main className="main-content">
-        <header className="topbar">
-          <h1>Support Ticket System</h1>
-          <nav>
-            <a href="/">Dashboard</a>
-            <a href="/">Notifications</a>
-            <a href="/">Profile</a>
-          </nav>
-        </header>
-
-        <section className="workload">
-          <h2>My Workload</h2>
-          <div className="badges">
-            <div className="badge blue">{assignedCount} Assigned</div>
-            <div className="badge red">{urgentCount} Urgent</div>
-            <div className="badge orange">{pendingCount} Pending</div>
-            <div className="badge green">{resolvedCount} Resolved</div>
-          </div>
-        </section>
-
-        <section className="assigned-tickets">
-          <div className="assigned-header">
-            <h2>Assigned Tickets</h2>
-            <div className="filters">
-              <button>Filter</button>
-              <button>Sort</button>
-            </div>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Customer</th>
-                <th>Title</th>
-                <th>Status</th>
-                <th>Priority</th>
-                <th>Age</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tickets.map(ticket => (
-                <tr key={ticket.id}>
-                  <td>#{ticket.id}</td>
-                  <td>{ticket.createdBy.name}</td>
-                  <td>{ticket.title}</td>
-                  <td><span className={`status ${ticket.status.toLowerCase().replace(' ', '-')}`}>{ticket.status}</span></td>
-                  <td>{ticket.priority}</td>
-                  <td>{ticket.age}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      </main>
-    </div>
-  );
-}
+<aside className="sidebar">
+  <h2>Agent Tools</h2>
+  <ul>
+    <li><a href="/assigned-tickets">My Assigned Tickets</a></li>
+    <li><a href="/open-tickets">All Open Tickets</a></li>
+    <li><a href="/search">Search Tickets</a></li>
+    <li><a href="/performance">My Performance</a></li>
+    <li><a href="/calendar">Calendar/Reminders</a></li>
+  </ul>
+</aside>
 
 
 
 
-
-
-.customer-dashboard {
-  display: flex;
-  font-family: sans-serif;
-  height: 100vh;
-}
-
-.sidebar {
-  background: #f0f0f0;
-  width: 220px;
-  padding: 20px;
-}
-
-.sidebar h2 {
-  margin-bottom: 10px;
-  font-size: 18px;
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar li {
-  margin: 10px 0;
-}
-
-.main-content {
-  flex: 1;
-  padding: 20px;
-}
-
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #1260cc;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 6px;
-}
-
-.topbar nav a {
-  color: white;
-  margin-left: 20px;
-  text-decoration: none;
-}
-
-.workload {
-  margin-top: 20px;
-}
-
-.badges {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.badge {
+.sidebar ul li a {
+  display: block;
   padding: 8px 12px;
-  border-radius: 6px;
-  color: white;
-  font-weight: bold;
-}
-
-.badge.blue { background: #007bff; }
-.badge.red { background: #dc3545; }
-.badge.orange { background: #fd7e14; }
-.badge.green { background: #28a745; }
-
-.assigned-tickets {
-  margin-top: 30px;
-}
-
-.assigned-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-th, td {
-  padding: 10px;
-  border-bottom: 1px solid #ccc;
-  text-align: left;
-}
-
-.status {
-  padding: 4px 8px;
+  color: #333;
+  text-decoration: none;
   border-radius: 4px;
-  color: white;
-  font-size: 0.85em;
+  transition: background 0.2s, color 0.2s;
 }
 
-.status.in-progress { background: #007bff; }
-.status.pending { background: #ffc107; color: #333; }
-.status.new { background: #17a2b8; }
-.status.resolved { background: #28a745; }
-.status.closed { background: #6c757d; }
+.sidebar ul li a:hover {
+  background-color: #007bff;
+  color: #fff;
+}
