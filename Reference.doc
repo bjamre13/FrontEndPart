@@ -1,141 +1,192 @@
-/* General reset and layout */
-body, html {
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import './HomePage.css';
+
+const HomePage: React.FC = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="home-container">
+      <header className="navbar">
+        <div className="logo">
+          <img src="https://cdn-icons-png.flaticon.com/512/724/724715.png" alt="logo" />
+          <span>SupportDesk</span>
+        </div>
+        <nav className="nav-links">
+          <a href="#">Home</a>
+          <a href="#">Features</a>
+          <a href="#">Pricing</a>
+          <a href="#">Contact</a>
+        </nav>
+        <div className="auth-buttons">
+          <button onClick={() => navigate('/auth/login')}>Log in</button>
+          <button onClick={() => navigate('/auth/signup')} className="signup">Sign up</button>
+        </div>
+      </header>
+
+      <main className="hero-section">
+        <div className="hero-left">
+          <h1><span>Customer</span> Service</h1>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            Morbi a egestas felis, nec posuere tortor.
+          </p>
+          <div className="hero-buttons">
+            <button onClick={() => navigate('/try')} className="try-btn">Try Free</button>
+            <button onClick={() => navigate('/get-started')} className="start-btn">Get Started</button>
+          </div>
+        </div>
+        <div className="hero-right">
+          <img src="https://cdn.pixabay.com/photo/2022/10/17/07/54/customer-support-7526957_960_720.png" alt="customer-service" />
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default HomePage;
+
+
+
+
+
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+body, html {
   font-family: 'Segoe UI', sans-serif;
+  background-color: #f5f9ff;
   overflow-x: hidden;
-  background-color: #f9f9f9;
 }
 
-.home-wrapper {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+.home-container {
+  width: 100%;
 }
 
-/* Navigation Bar */
+/* Navbar */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 1rem 2rem;
   background-color: #0047AB;
-  padding: 0.8rem 2rem;
   color: white;
   flex-wrap: wrap;
 }
 
 .logo {
-  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: bold;
+  font-size: 1.4rem;
+}
+
+.logo img {
+  width: 30px;
+  height: 30px;
 }
 
 .nav-links a {
   margin: 0 1rem;
-  text-decoration: none;
   color: white;
+  text-decoration: none;
+  font-weight: 500;
 }
 
-.nav-buttons button {
-  margin-left: 1rem;
+.auth-buttons button {
+  margin-left: 0.5rem;
   padding: 0.4rem 1rem;
-  background-color: white;
   border: none;
   border-radius: 5px;
-  color: #0047AB;
-  font-weight: 600;
   cursor: pointer;
+}
+
+.auth-buttons .signup {
+  background-color: white;
+  color: #0047AB;
 }
 
 /* Hero Section */
-.hero {
+.hero-section {
   display: flex;
   flex-direction: column;
+  padding: 2rem;
   align-items: center;
-  padding: 3rem 1rem;
   text-align: center;
 }
 
-.hero-text h1 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+.hero-left {
+  max-width: 600px;
 }
 
-.hero-text span {
-  color: #0047AB;
+.hero-left h1 {
+  font-size: 3rem;
+  color: #1c1c1c;
 }
 
-.hero-actions {
-  margin-top: 1.5rem;
+.hero-left h1 span {
+  color: #00b4d8;
 }
 
-.hero-actions button {
-  margin: 0 0.5rem;
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
+.hero-left p {
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: #444;
 }
 
-.get-started {
-  background-color: #0047AB;
-  color: white;
-}
-
-.learn-more {
-  background-color: #fff;
-  color: #0047AB;
-  border: 1px solid #0047AB;
-}
-
-/* Mock Ticket Image */
-.hero-image {
+.hero-buttons {
   margin-top: 2rem;
 }
 
-.mock-ticket {
-  background-color: #e0e7ff;
-  padding: 1.5rem;
-  border-radius: 8px;
-  width: 300px;
-}
-
-.ticket-bar {
-  height: 12px;
-  background-color: #375efc;
-  margin: 10px 0;
+.try-btn,
+.start-btn {
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  margin-right: 1rem;
+  border: none;
   border-radius: 4px;
+  cursor: pointer;
 }
 
-.ticket-bar.bar-1 { width: 80%; }
-.ticket-bar.bar-2 { width: 65%; background-color: #4c8bf5; }
-.ticket-bar.bar-3 { width: 90%; background-color: #6daaff; }
-
-/* Footer */
-.footer {
-  text-align: center;
-  padding: 2rem;
-  background: #0047AB;
+.try-btn {
+  background-color: #00b4d8;
   color: white;
-  margin-top: auto;
 }
 
-/* Responsive Adjustments */
+.start-btn {
+  background-color: #002855;
+  color: white;
+}
+
+.hero-right {
+  margin-top: 2rem;
+}
+
+.hero-right img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+/* Responsive */
 @media (min-width: 768px) {
-  .hero {
+  .hero-section {
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-around;
     text-align: left;
-    padding: 4rem 8%;
   }
 
-  .hero-text {
+  .hero-left {
     flex: 1;
   }
 
-  .hero-image {
+  .hero-right {
     flex: 1;
+    margin-top: 0;
     display: flex;
     justify-content: center;
   }
