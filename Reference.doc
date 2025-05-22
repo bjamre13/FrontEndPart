@@ -1,21 +1,131 @@
-.button-group {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
+import React from 'react';
+import './HomePage.css';
+import { useNavigate } from 'react-router-dom';
 
-.cancel-btn {
-  background-color: white;
-  color: #333;
-  border: 1px solid #ccc;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-}
+const HomePage: React.FC = () => {
+  const navigate = useNavigate();
 
-.submit-btn {
-  background-color: #0d6efd;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  cursor: pointer;
-}
+  return (
+    <div className="home-wrapper">
+      <header className="navbar">
+        <div className="logo">
+          <img src="/assets/support-logo.png" alt="Support Logo" className="logo-img" />
+          <span>SupportDesk</span>
+        </div>
+        <nav className="nav-links">
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#contact">Contact</a>
+        </nav>
+        <div className="nav-buttons">
+          <button className="login-btn" onClick={() => navigate('/auth-login')}>Log in</button>
+          <button className="signup-btn" onClick={() => navigate('/auth-signup')}>Sign up</button>
+        </div>
+      </header>
+
+      <main className="hero">
+        <div className="hero-text">
+          <h1>
+            Simplify Your <span>Customer Support</span>
+          </h1>
+          <p>
+            Empower your support team with our robust, easy-to-use ticket management system. Track issues, respond faster, and enhance customer satisfaction.
+          </p>
+          <div className="hero-actions">
+            <button className="get-started" onClick={() => navigate('/get-started')}>Get Started</button>
+            <button className="learn-more" onClick={() => navigate('/learn-more')}>Learn More</button>
+          </div>
+        </div>
+
+        <div className="hero-image">
+          <img src="/assets/hero-illustration.png" alt="Support Illustration" className="illustration" />
+        </div>
+      </main>
+
+      <section className="features-section" id="features">
+        <h2>Key Features</h2>
+        <div className="features-grid">
+          <div className="feature">
+            <img src="/assets/icon-ticket.png" alt="Ticket" />
+            <h3>Easy Ticketing</h3>
+            <p>Submit and manage support tickets in just a few clicks.</p>
+          </div>
+          <div className="feature">
+            <img src="/assets/icon-realtime.png" alt="Realtime" />
+            <h3>Real-Time Updates</h3>
+            <p>Stay informed with instant updates and notifications.</p>
+          </div>
+          <div className="feature">
+            <img src="/assets/icon-analytics.png" alt="Analytics" />
+            <h3>Insightful Analytics</h3>
+            <p>Measure performance and optimize your support operations.</p>
+          </div>
+        </div>
+      </section>
+
+      <footer className="footer" id="contact">
+        <p>&copy; 2025 SupportDesk. All rights reserved.</p>
+        <p>Contact us: support@supportdesk.com</p>
+      </footer>
+    </div>
+  );
+};
+
+export default HomePage;
+
+
+
+/* HomePage.css */
+
+body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-x: hidden; }
+
+.home-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
+
+.navbar { background-color: #004b8d; color: white; display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; position: sticky; top: 0; z-index: 1000; }
+
+.logo { font-size: 1.5rem; font-weight: bold; }
+
+.nav-links a { color: white; margin: 0 1rem; text-decoration: none; font-weight: 500; transition: color 0.3s ease; }
+
+.nav-links a:hover { color: #ffd700; }
+
+.nav-buttons .login-btn { background-color: white; color: #004b8d; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background-color 0.3s ease; }
+
+.nav-buttons .login-btn:hover { background-color: #e0e0e0; }
+
+.hero { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 4rem 2rem; background-color: #f8f9fa; }
+
+.hero-text { max-width: 600px; flex: 1; }
+
+.hero-text h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+
+.hero-text span { color: #007bff; }
+
+.hero-text p { font-size: 1.1rem; color: #333; margin-bottom: 2rem; }
+
+.hero-actions button { padding: 0.75rem 1.5rem; margin-right: 1rem; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; }
+
+.hero-actions .get-started { background-color: #007bff; color: white; }
+
+.hero-actions .get-started:hover { background-color: #0056b3; }
+
+.hero-actions .learn-more { background-color: white; border: 2px solid #007bff; color: #007bff; }
+
+.hero-actions .learn-more:hover { background-color: #e6f0ff; }
+
+.hero-image { flex: 1; text-align: center; padding: 1rem; }
+
+.mock-ticket { width: 300px; margin: 0 auto; background: #e1ecf4; border-radius: 12px; padding: 1rem; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); }
+
+.ticket-bar { height: 20px; border-radius: 10px; margin: 1rem 0; background-color: #007bff; }
+
+.bar-1 { width: 60%; }
+
+.bar-2 { width: 80%; background-color: #4b89dc; }
+
+.bar-3 { width: 50%; background-color: #3399ff; }
+
+@media (max-width: 768px) { .hero { flex-direction: column; text-align: center; }
+
+.hero-text, .hero-image { max-width: 100%; } }
+
