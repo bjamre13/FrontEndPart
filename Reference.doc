@@ -1,123 +1,230 @@
-import React from 'react'; import './CustomerDashboard.css';
+import React from 'react';
+import './CustomerDashboard.css';
 
-interface Ticket { id: string; customer: string; title: string; status: 'New' | 'Pending' | 'In Progress' | 'Resolved'; priority: 'Low' | 'Medium' | 'High'; age: string; }
+type TicketStatus = 'Open' | 'In Progress' | 'Resolved' | 'Closed';
+type Priority = 'High' | 'Medium' | 'Low';
 
-const tickets: Ticket[] = [ { id: '#1245', customer: 'John Smith', title: 'Login issue with mobile app', status: 'In Progress', priority: 'High', age: '1d 4h' }, { id: '#1242', customer: 'Alice Johnson', title: 'Password reset not working', status: 'Pending', priority: 'Medium', age: '4h 23m' }, { id: '#1238', customer: 'Sarah Williams', title: 'Billing question about subscription', status: 'New', priority: 'High', age: '18m' } ];
+interface User {
+  id: string;
+  name: string;
+}
 
-export default function CustomerDashboard() { return ( <div className="dashboard-container"> <header className="navbar"> <h1>Support Ticket System</h1> <nav className="nav-links"> <a href="#">Dashboard</a> <a href="#">Notifications</a> <a href="#">Profile</a> </nav> </header>
+interface Ticket {
+  id: string;
+  title: string;
+  status: TicketStatus;
+  date: string;
+  priority: Priority;
+  createdBy: User;
+}
 
-<div className="dashboard-content">
-    <aside className="sidebar">
-      <h2>Agent Tools</h2>
-      <ul>
-        <li><a href="#">My Assigned Tickets</a></li>
-        <li><a href="#">All Open Tickets</a></li>
-        <li><a href="#">Search Tickets</a></li>
-        <li><a href="#">My Performance</a></li>
-        <li><a href="#">Calendar/Reminders</a></li>
-      </ul>
-    </aside>
+export default function CustomerDashboard() {
+  const user: User | null = { id: 'customer001', name: 'Alice Smith' };
 
-    <main className="main-content">
-      <section className="workload">
-        <h2>My Workload</h2>
-        <div className="status-boxes">
-          <button className="assigned">12 Assigned</button>
-          <button className="urgent">3 Urgent</button>
-          <button className="pending">5 Pending</button>
-          <button className="resolved">4 Resolved</button>
-        </div>
-      </section>
+  const tickets: Ticket[] = [
+    { id: '#1245', title: 'Login issue with mobile app', status: 'In Progress', date: 'Mar 10, 2025', priority: 'High', createdBy: user },
+    { id: '#1244', title: 'Billing discrepancy', status: 'Resolved', date: 'Mar 9, 2025', priority: 'Medium', createdBy: user },
+    { id: '#1243', title: 'Feature request: Dark mode', status: 'Resolved', date: 'Mar 8, 2025', priority: 'Low', createdBy: user }
+  ];
 
-      <section className="assigned-tickets">
-        <div className="section-header">
-          <h2>Assigned Tickets</h2>
-          <div className="actions">
-            <select>
-              <option>Filter</option>
-              <option>Status</option>
-              <option>Priority</option>
-            </select>
-            <select>
-              <option>Sort</option>
-              <option>Newest</option>
-              <option>Oldest</option>
-            </select>
-          </div>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Customer</th>
-              <th>Title</th>
-              <th>Status</th>
-              <th>Priority</th>
-              <th>Age</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tickets.map(ticket => (
-              <tr key={ticket.id}>
-                <td>{ticket.id}</td>
-                <td>{ticket.customer}</td>
-                <td>{ticket.title}</td>
-                <td><span className={`status ${ticket.status.toLowerCase()}`}>{ticket.status}</span></td>
-                <td>{ticket.priority}</td>
-                <td>{ticket.age}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-    </main>
-  </div>
-</div>
+  const active = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
+  const resolved = tickets.filter(t => t.status === 'Resolved').length;
+  const urgent = tickets.filter(t => t.priority === 'High').length;
 
-); }
+  return (
+    <div className="customer-dashboard">
+      <header className="nav-bar">
+        <h1>Support Ticket System</h1>
+        <nav>
+          <a href="/">Dashboard</a>
+          <a href="/">Notifications</a>
+          <a href="/">Profile</a>
+        </nav>
+      </header>
+
+      <div className="dashboard-content">
+        <aside className="sidebar">
+          <h2>My Tickets</h2>
+          <ul>
+            <li><a href="#">All Tickets</a></li>
+            <li><a href="#">Active Tickets</a></li>
+            <li><a href="#">Resolved Tickets</a></li>
+            <li><a href="#">Create New Ticket</a></li>
+          </ul>
+        </aside>
+
+        <main className="main-section">
+          <section className="summary">
+            <h2>Ticket Summary</h2>
+            <div className="summary-buttons">
+              <button className="btn blue">{active} Active</button>
+              <button className="btn green">{resolved} Resolved</button>
+              <button className="btn red">{urgent} Urgent</button>
+            </div>
+          </section>
+
+          <section className="ticket-table">
+            <div className="table-header">
+              <h2>Recent Tickets</h2>
+              <a href="/tickets/new" className="btn green">+ New Ticket</a>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Priority</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tickets.map(ticket => (
+                  <tr key={ticket.id}>
+                    <td>{ticket.id}</td>
+                    <td>{ticket.title}</td>
+                    <td><span className={`status ${ticket.status.toLowerCase().replace(/\s/g, '-')}`}>{ticket.status}</span></td>
+                    <td>{ticket.date}</td>
+                    <td><span className={`priority ${ticket.priority.toLowerCase()}`}>{ticket.priority}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        </main>
+      </div>
+    </div>
+  );
+}
 
 
 
 
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  overflow-x: hidden;
+}
 
+.customer-dashboard {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
 
-/* Layout */ .dashboard-container { font-family: Arial, sans-serif; height: 100vh; display: flex; flex-direction: column; }
+.nav-bar {
+  background: #0044aa;
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-/* Top navbar */ .navbar { background-color: #0047ab; color: white; display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; }
+.nav-bar nav a {
+  color: white;
+  margin-left: 20px;
+  text-decoration: none;
+}
 
-.nav-links a { margin-left: 16px; color: white; text-decoration: none; font-weight: 500; }
+.dashboard-content {
+  display: flex;
+  height: 100%;
+}
 
-.nav-links a:hover { text-decoration: underline; }
+.sidebar {
+  width: 200px;
+  background-color: #f4f4f4;
+  padding: 1rem;
+  border-right: 1px solid #ddd;
+}
 
-/* Dashboard content layout */ .dashboard-content { display: flex; flex: 1; }
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
 
-/* Sidebar */ .sidebar { width: 220px; background-color: #f5f5f5; padding: 20px; border-right: 1px solid #ddd; }
+.sidebar li a {
+  display: block;
+  padding: 8px 0;
+  color: #333;
+  text-decoration: none;
+}
 
-.sidebar h2 { margin-bottom: 12px; }
+.sidebar li a:hover {
+  text-decoration: underline;
+}
 
-.sidebar ul { list-style: none; padding: 0; }
+.main-section {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
 
-.sidebar ul li a { display: block; padding: 8px; text-decoration: none; color: #333; border-radius: 4px; transition: 0.2s; }
+.summary-buttons {
+  display: flex;
+  gap: 10px;
+  margin: 1rem 0;
+}
 
-.sidebar ul li a:hover { background-color: #007bff; color: white; }
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  font-weight: bold;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+}
 
-/* Main content */ .main-content { flex: 1; padding: 24px; overflow-y: auto; }
+.btn.green { background-color: #28a745; }
+.btn.red { background-color: #dc3545; }
+.btn.blue { background-color: #007bff; }
 
-/* Workload section */ .status-boxes { display: flex; gap: 10px; margin-bottom: 24px; }
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
 
-.status-boxes button { padding: 10px 16px; border: none; border-radius: 5px; font-weight: 500; cursor: pointer; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
 
-.assigned { background-color: #e0f0ff; } .urgent { background-color: #ffe0e0; } .pending { background-color: #fff8e0; } .resolved { background-color: #e0ffe4; }
+th, td {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  text-align: left;
+}
 
-/* Assigned tickets section */ .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.status.in-progress {
+  background-color: #007bff;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
 
-.section-header h2 { margin: 0; }
+.status.resolved {
+  background-color: #28a745;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
 
-.actions select { margin-left: 12px; padding: 6px; border-radius: 4px; }
+.priority.high {
+  color: #dc3545;
+  font-weight: bold;
+}
 
-/* Ticket table */ table { width: 100%; border-collapse: collapse; }
+.priority.medium {
+  color: #ffc107;
+  font-weight: bold;
+}
 
-th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
-
-.status.new { color: blue; } .status.pending { color: orange; } .status.in\ progress { color: darkgoldenrod; } .status.resolved { color: green; }
-
+.priority.low {
+  color: #28a745;
+  font-weight: bold;
+}
