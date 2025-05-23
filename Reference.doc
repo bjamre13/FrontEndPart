@@ -1,8 +1,64 @@
-useEffect(() => {
-  fetch("http://localhost:8765/api/users/csrf-token", {
-    credentials: "include",
-  })
-    .then(res => res.json())
-    .then(data => setCsrfToken(data.token))
-    .catch(err => console.error("Failed to fetch CSRF token", err));
-}, []);
+import React, { useEffect, useState } from 'react';
+import CustomerDashboard from '../components/CustomerDashboard';
+import AgentDashboard from '../components/AgentDashboard';
+import AdminDashboard from '../components/AdminDashboard';
+
+type User = {
+  role: 'customer' | 'agent' | 'admin' | string;
+  name: string;
+};
+
+export default function HomePage() {
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate fetching user data
+    setTimeout(() => {
+      const mockUser: User = {
+        name: 'John Doe',
+        role: 'admin', // Change to 'agent' or 'customer' to test
+      };
+      setUser(mockUser);
+      setIsAuthenticated(true);
+      setIsLoading(false);
+    }, 1000);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h2>Loading dashboard...</h2>
+        <div className="skeleton-box" />
+        <div className="skeleton-box" />
+        <div className="skeleton-box" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !user) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <div style={{ fontSize: '30px', marginBottom: '20px' }}>⌛</div>
+        <p style={{ fontSize: '18px', color: '#666' }}>Loading your dashboard...</p>
+      </div>
+    );
+  }
+
+  switch (user.role) {
+    case 'customer':
+      return <CustomerDashboard />;
+    case 'agent':
+      return <AgentDashboard />;
+    case 'admin':
+      return <AdminDashboard />;
+    default:
+      return (
+        <div style={{ padding: '40px', textAlign: 'center', border: '1px solid #ccc', borderRadius: '8px' }}>
+          <h3>Error</h3>
+          <p>Invalid user role. Please contact support.</p>
+        </div>
+      );
+  }
+}
