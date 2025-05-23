@@ -1,64 +1,142 @@
-import React, { useEffect, useState } from 'react';
-import CustomerDashboard from '../components/CustomerDashboard';
-import AgentDashboard from '../components/AgentDashboard';
-import AdminDashboard from '../components/AdminDashboard';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import './CustomerDashboard.css';
 
-type User = {
-  role: 'customer' | 'agent' | 'admin' | string;
+type TicketStatus = 'Open' | 'In Progress' | 'Resolved' | 'Closed';
+type Priority = 'High' | 'Medium' | 'Low';
+
+interface User {
+  id: string;
   name: string;
-};
+}
 
-export default function HomePage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+interface Ticket {
+  id: string;
+  title: string;
+  status: TicketStatus;
+  date: string;
+  priority: Priority;
+  createdBy: User;
+}
 
-  useEffect(() => {
-    // Simulate fetching user data
-    setTimeout(() => {
-      const mockUser: User = {
-        name: 'John Doe',
-        role: 'admin', // Change to 'agent' or 'customer' to test
-      };
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      setIsLoading(false);
-    }, 1000);
-  }, []);
+export default function CustomerDashboard() {
+  const navigate = useNavigate();
 
-  if (isLoading) {
-    return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <h2>Loading dashboard...</h2>
-        <div className="skeleton-box" />
-        <div className="skeleton-box" />
-        <div className="skeleton-box" />
+  const user: User | null = { id: 'customer001', name: 'Alice Smith' };
+
+  const tickets: Ticket[] = [
+    { id: '#1245', title: 'Login issue with mobile app', status: 'In Progress', date: 'Mar 10, 2025', priority: 'High', createdBy: user },
+    { id: '#1244', title: 'Billing discrepancy', status: 'Resolved', date: 'Mar 9, 2025', priority: 'Medium', createdBy: user },
+    { id: '#1243', title: 'Feature request: Dark mode', status: 'Resolved', date: 'Mar 8, 2025', priority: 'Low', createdBy: user }
+  ];
+
+  const active = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
+  const resolved = tickets.filter(t => t.status === 'Resolved').length;
+  const urgent = tickets.filter(t => t.priority === 'High').length;
+
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.value;
+    if (selected === 'admin') navigate('/admin');
+    else if (selected === 'agent') navigate('/agent');
+    else if (selected === 'customer') navigate('/customer');
+  };
+
+  return (
+    <div className="customer-dashboard">
+      <header className="nav-bar">
+        <h1>Support Ticket System</h1>
+        <nav>
+          <a href="/">Dashboard</a>
+          <a href="/">Notifications</a>
+          <div className="profile-role-dropdown">
+            <label htmlFor="role-select">Profile</label>
+            <select id="role-select" onChange={handleRoleChange}>
+              <option value="">--Switch Role--</option>
+              <option value="admin">Admin</option>
+              <option value="agent">Agent</option>
+              <option value="customer">Customer</option>
+            </select>
+          </div>
+        </nav>
+      </header>
+
+      <div className="dashboard-content">
+        <aside className="sidebar">
+          <h2>My Tickets</h2>
+          <ul>
+            <li><a href="#">All Tickets</a></li>
+            <li><a href="#">Active Tickets</a></li>
+            <li><a href="#">Resolved Tickets</a></li>
+            <li><a href="#">Create New Ticket</a></li>
+          </ul>
+        </aside>
+
+        <main className="main-section">
+          <section className="summary">
+            <h2>Ticket Summary</h2>
+            <div className="summary-buttons">
+              <button className="btn blue">{active} Active</button>
+              <button className="btn green">{resolved} Resolved</button>
+              <button className="btn red">{urgent} Urgent</button>
+            </div>
+          </section>
+
+          <section className="ticket-table">
+            <div className="table-header">
+              <h2>Recent Tickets</h2>
+              <a href="/tickets/new" className="btn green">+ New Ticket</a>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Priority</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tickets.map(ticket => (
+                  <tr key={ticket.id}>
+                    <td>{ticket.id}</td>
+                    <td>{ticket.title}</td>
+                    <td><span className={`status ${ticket.status.toLowerCase().replace(/\s/g, '-')}`}>{ticket.status}</span></td>
+                    <td>{ticket.date}</td>
+                    <td><span className={`priority ${ticket.priority.toLowerCase()}`}>{ticket.priority}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        </main>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
-  if (!isAuthenticated || !user) {
-    return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <div style={{ fontSize: '30px', marginBottom: '20px' }}>⌛</div>
-        <p style={{ fontSize: '18px', color: '#666' }}>Loading your dashboard...</p>
-      </div>
-    );
-  }
 
-  switch (user.role) {
-    case 'customer':
-      return <CustomerDashboard />;
-    case 'agent':
-      return <AgentDashboard />;
-    case 'admin':
-      return <AdminDashboard />;
-    default:
-      return (
-        <div style={{ padding: '40px', textAlign: 'center', border: '1px solid #ccc', borderRadius: '8px' }}>
-          <h3>Error</h3>
-          <p>Invalid user role. Please contact support.</p>
-        </div>
-      );
-  }
+
+.profile-role-dropdown {
+  display: inline-block;
+  position: relative;
+  margin-left: 20px;
+}
+
+.profile-role-dropdown label {
+  font-weight: bold;
+  margin-right: 6px;
+  color: white;
+}
+
+.profile-role-dropdown select {
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.profile-role-dropdown select:hover {
+  background-color: #f0f0f0;
 }
