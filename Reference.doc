@@ -1,142 +1,78 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import './CustomerDashboard.css';
-
-type TicketStatus = 'Open' | 'In Progress' | 'Resolved' | 'Closed';
-type Priority = 'High' | 'Medium' | 'Low';
-
-interface User {
-  id: string;
-  name: string;
-}
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 interface Ticket {
   id: string;
   title: string;
-  status: TicketStatus;
-  date: string;
-  priority: Priority;
-  createdBy: User;
+  description: string;
+  status: string;
+  priority: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: { name: string; email: string };
+  attachments: string[];
+  comments: { author: string; time: string; message: string }[];
 }
 
-export default function CustomerDashboard() {
-  const navigate = useNavigate();
+export default function TicketDetailsPage() {
+  const { ticketId } = useParams();
+  const [ticket, setTicket] = useState<Ticket | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const user: User | null = { id: 'customer001', name: 'Alice Smith' };
+  useEffect(() => {
+    fetch(`http://localhost:8765/api/tickets/${ticketId}`)
+      .then(res => res.json())
+      .then(data => {
+        setTicket(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching ticket:', err);
+        setLoading(false);
+      });
+  }, [ticketId]);
 
-  const tickets: Ticket[] = [
-    { id: '#1245', title: 'Login issue with mobile app', status: 'In Progress', date: 'Mar 10, 2025', priority: 'High', createdBy: user },
-    { id: '#1244', title: 'Billing discrepancy', status: 'Resolved', date: 'Mar 9, 2025', priority: 'Medium', createdBy: user },
-    { id: '#1243', title: 'Feature request: Dark mode', status: 'Resolved', date: 'Mar 8, 2025', priority: 'Low', createdBy: user }
-  ];
-
-  const active = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
-  const resolved = tickets.filter(t => t.status === 'Resolved').length;
-  const urgent = tickets.filter(t => t.priority === 'High').length;
-
-  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = e.target.value;
-    if (selected === 'admin') navigate('/admin');
-    else if (selected === 'agent') navigate('/agent');
-    else if (selected === 'customer') navigate('/customer');
-  };
+  if (loading) return <p>Loading ticket details...</p>;
+  if (!ticket) return <p>Ticket not found.</p>;
 
   return (
-    <div className="customer-dashboard">
-      <header className="nav-bar">
-        <h1>Support Ticket System</h1>
-        <nav>
-          <a href="/">Dashboard</a>
-          <a href="/">Notifications</a>
-          <div className="profile-role-dropdown">
-            <label htmlFor="role-select">Profile</label>
-            <select id="role-select" onChange={handleRoleChange}>
-              <option value="">--Switch Role--</option>
-              <option value="admin">Admin</option>
-              <option value="agent">Agent</option>
-              <option value="customer">Customer</option>
-            </select>
-          </div>
-        </nav>
-      </header>
+    <div className="ticket-details">
+      <h2>Ticket #{ticket.id}: {ticket.title}</h2>
+      <p><strong>Customer:</strong> {ticket.createdBy.name} ({ticket.createdBy.email})</p>
+      <p><strong>Created:</strong> {new Date(ticket.createdAt).toLocaleString()}</p>
+      <p><strong>Last Updated:</strong> {new Date(ticket.updatedAt).toLocaleString()}</p>
+      <p><strong>Status:</strong> <span className={`status ${ticket.status.toLowerCase()}`}>{ticket.status}</span></p>
+      <p><strong>Priority:</strong> <span className={`priority ${ticket.priority.toLowerCase()}`}>{ticket.priority}</span></p>
+      
+      <h3>Description</h3>
+      <p>{ticket.description}</p>
 
-      <div className="dashboard-content">
-        <aside className="sidebar">
-          <h2>My Tickets</h2>
-          <ul>
-            <li><a href="#">All Tickets</a></li>
-            <li><a href="#">Active Tickets</a></li>
-            <li><a href="#">Resolved Tickets</a></li>
-            <li><a href="#">Create New Ticket</a></li>
-          </ul>
-        </aside>
+      <h3>Attachments</h3>
+      <ul>
+        {ticket.attachments.map((file, idx) => (
+          <li key={idx}><a href={`http://localhost:8765/uploads/${file}`} download>{file}</a></li>
+        ))}
+      </ul>
 
-        <main className="main-section">
-          <section className="summary">
-            <h2>Ticket Summary</h2>
-            <div className="summary-buttons">
-              <button className="btn blue">{active} Active</button>
-              <button className="btn green">{resolved} Resolved</button>
-              <button className="btn red">{urgent} Urgent</button>
-            </div>
-          </section>
-
-          <section className="ticket-table">
-            <div className="table-header">
-              <h2>Recent Tickets</h2>
-              <a href="/tickets/new" className="btn green">+ New Ticket</a>
-            </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Title</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                  <th>Priority</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tickets.map(ticket => (
-                  <tr key={ticket.id}>
-                    <td>{ticket.id}</td>
-                    <td>{ticket.title}</td>
-                    <td><span className={`status ${ticket.status.toLowerCase().replace(/\s/g, '-')}`}>{ticket.status}</span></td>
-                    <td>{ticket.date}</td>
-                    <td><span className={`priority ${ticket.priority.toLowerCase()}`}>{ticket.priority}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-        </main>
-      </div>
+      <h3>Communication</h3>
+      {ticket.comments.map((comment, idx) => (
+        <div key={idx} className="comment">
+          <strong>{comment.author} - {comment.time}</strong>
+          <p>{comment.message}</p>
+        </div>
+      ))}
     </div>
   );
 }
 
 
 
-.profile-role-dropdown {
-  display: inline-block;
-  position: relative;
-  margin-left: 20px;
+@GetMapping("/tickets/{id}")
+public ResponseEntity<TicketDTO> getTicketById(@PathVariable Long id) {
+    Ticket ticket = ticketService.getTicketById(id);
+    TicketDTO dto = ticketMapper.toDTO(ticket); // Convert entity to DTO
+    return ResponseEntity.ok(dto);
 }
 
-.profile-role-dropdown label {
-  font-weight: bold;
-  margin-right: 6px;
-  color: white;
-}
 
-.profile-role-dropdown select {
-  padding: 5px 8px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  font-size: 14px;
-}
 
-.profile-role-dropdown select:hover {
-  background-color: #f0f0f0;
-}
