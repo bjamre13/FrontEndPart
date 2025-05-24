@@ -1,78 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+useEffect(() => {
+  if (!ticketId) return;
 
-interface Ticket {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: { name: string; email: string };
-  attachments: string[];
-  comments: { author: string; time: string; message: string }[];
-}
-
-export default function TicketDetailsPage() {
-  const { ticketId } = useParams();
-  const [ticket, setTicket] = useState<Ticket | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(`http://localhost:8765/api/tickets/${ticketId}`)
-      .then(res => res.json())
-      .then(data => {
-        setTicket(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching ticket:', err);
-        setLoading(false);
-      });
-  }, [ticketId]);
-
-  if (loading) return <p>Loading ticket details...</p>;
-  if (!ticket) return <p>Ticket not found.</p>;
-
-  return (
-    <div className="ticket-details">
-      <h2>Ticket #{ticket.id}: {ticket.title}</h2>
-      <p><strong>Customer:</strong> {ticket.createdBy.name} ({ticket.createdBy.email})</p>
-      <p><strong>Created:</strong> {new Date(ticket.createdAt).toLocaleString()}</p>
-      <p><strong>Last Updated:</strong> {new Date(ticket.updatedAt).toLocaleString()}</p>
-      <p><strong>Status:</strong> <span className={`status ${ticket.status.toLowerCase()}`}>{ticket.status}</span></p>
-      <p><strong>Priority:</strong> <span className={`priority ${ticket.priority.toLowerCase()}`}>{ticket.priority}</span></p>
-      
-      <h3>Description</h3>
-      <p>{ticket.description}</p>
-
-      <h3>Attachments</h3>
-      <ul>
-        {ticket.attachments.map((file, idx) => (
-          <li key={idx}><a href={`http://localhost:8765/uploads/${file}`} download>{file}</a></li>
-        ))}
-      </ul>
-
-      <h3>Communication</h3>
-      {ticket.comments.map((comment, idx) => (
-        <div key={idx} className="comment">
-          <strong>{comment.author} - {comment.time}</strong>
-          <p>{comment.message}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
+  fetch(`http://localhost:8765/api/tickets/${ticketId}`, {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': csrfToken,
+    },
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error('Unauthorized or Ticket not found');
+      return res.json();
+    })
+    .then(setTicket)
+    .catch((err) => console.error('Error fetching ticket:', err));
+}, [ticketId]);
 
 
 
-@GetMapping("/tickets/{id}")
-public ResponseEntity<TicketDTO> getTicketById(@PathVariable Long id) {
-    Ticket ticket = ticketService.getTicketById(id);
-    TicketDTO dto = ticketMapper.toDTO(ticket); // Convert entity to DTO
-    return ResponseEntity.ok(dto);
-}
-
-
-
+.then((res) => {
+  if (res.status === 204) return null; // No Content
+  return res.json();
+})
