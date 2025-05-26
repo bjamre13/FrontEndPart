@@ -1,62 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './NotificationsPage.css';
-
-interface Notification {
-  notificationId: number;
-  userId: number;
-  ticketId: number;
-  message: string;
-  createdAt: string;
-  read: boolean;
-}
-
-export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const userId = JSON.parse(localStorage.getItem('user') || '{}')?.userId;
-
-    fetch(`http://localhost:8765/api/notifications/user/${userId}`)
-      .then(res => res.json())
-      .then(data => {
-        setNotifications(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to fetch notifications:", err);
-        setLoading(false);
-      });
-  }, []);
-
-  return (
-    <div className="notifications-page">
-      <h2>Notifications</h2>
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        notifications.length === 0 ? (
-          <p>No notifications</p>
-        ) : (
-          <ul className="notification-list">
-            {notifications.map(notification => (
-              <li
-                key={notification.notificationId}
-                className={`notification-item ${notification.read ? 'read' : 'unread'}`}
-                onClick={() => navigate(`/ticket-details/${notification.ticketId}`)}
-              >
-                <p>{notification.message}</p>
-                <small>{new Date(notification.createdAt).toLocaleString()}</small>
-              </li>
-            ))}
-          </ul>
-        )
-      )}
-    </div>
-  );
-}
-
-
-
+INSERT INTO notifications (notification_id, user_id, ticket_id, message, is_read, created_at) VALUES
+(9001, 1017, 5001, 'Your ticket has been assigned to an agent.', false, '2025-05-18 00:08:51'),
+(9002, 1018, 5001, 'You have been assigned a new ticket.', false, '2025-05-18 00:08:51'),
+(9003, 1015, 5001, 'Your reset password issue is in progress.', true, '2025-05-20 10:47:28'),
+(9004, 1018, 5002, 'Agent responded to your ticket.', true, '2025-05-20 11:00:00'),
+(9005, 1018, 5003, 'Your ticket has been resolved.', false, '2025-05-21 09:30:00'),
+(9006, 1018, 5004, 'You have received a new comment.', false, '2025-05-22 15:45:00'),
+(9007, 1015, 5005, 'Your feedback has been submitted.', true, '2025-05-23 10:15:00'),
+(9008, 1017, 5006, 'Your ticket priority was updated.', false, '2025-05-23 12:00:00');
