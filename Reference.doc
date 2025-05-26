@@ -1,143 +1,84 @@
-""import React, { useEffect, useState } from 'react'; import { useNavigate } from 'react-router-dom'; import './NotificationsPage.css';
+import React, { useEffect, useState } from 'react';
+import './NotificationsPage.css';
+import { useNavigate } from 'react-router-dom';
 
-interface Notification { notificationId: number; ticketId: number; message: string; timestamp: string; type?: 'comment' | 'resolved' | 'high' | 'reminder'; }
+interface Notification {
+  notificationId: number;
+  userId: number;
+  ticketId: number;
+  message: string;
+  createdAt: string;
+  read: boolean;
+}
 
-export default function NotificationsPage() { const [notifications, setNotifications] = useState<Notification[]>([]); const [loading, setLoading] = useState(true); const navigate = useNavigate();
+type FilterType = 'ALL' | 'READ' | 'UNREAD';
 
-useEffect(() => { const userId = JSON.parse(localStorage.getItem('userId') || 'null'); fetch(http://localhost:8765/api/notifications/user/${userId}) .then((res) => res.json()) .then((data) => { setNotifications(data); setLoading(false); }) .catch((err) => { console.error('Failed to fetch notifications:', err); setLoading(false); }); }, []);
+export default function NotificationsPage() {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<FilterType>('ALL');
+  const navigate = useNavigate();
+  const userId = JSON.parse(localStorage.getItem('user') || '{}').userId;
 
-const getIconColor = (type: string) => { switch (type) { case 'comment': return 'blue'; case 'resolved': return 'green'; case 'high': return 'red'; case 'reminder': return 'gold'; default: return 'gray'; } };
+  useEffect(() => {
+    fetch(`http://localhost:8765/api/notifications/user/${userId}`, {
+      credentials: 'include'
+    })
+      .then(res => res.json())
+      .then(data => {
+        setNotifications(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch notifications:", err);
+        setLoading(false);
+      });
+  }, [userId]);
 
-return ( <div className="notifications-page"> <h2 className="page-title">Notifications</h2>
+  const filteredNotifications = notifications.filter(n => {
+    if (filter === 'READ') return n.read;
+    if (filter === 'UNREAD') return !n.read;
+    return true;
+  });
 
-<div className="notification-panel">
-    <div className="panel-header">
-      <h3>Recent Notifications</h3>
+  const markAllAsRead = () => {
+    fetch(`http://localhost:8765/api/notifications/user/${userId}/mark-all-read`, {
+      method: 'PUT',
+      credentials: 'include'
+    }).then(() => {
+      setNotifications(notifications.map(n => ({ ...n, read: true })));
+    });
+  };
+
+  return (
+    <div className="notifications-page">
+      <h2>Notifications</h2>
+
       <div className="actions">
-        <button className="dropdown">All Types</button>
-        <button className="mark-read">Mark All Read</button>
+        <select onChange={(e) => setFilter(e.target.value as FilterType)} value={filter}>
+          <option value="ALL">All Types</option>
+          <option value="UNREAD">Unread</option>
+          <option value="READ">Read</option>
+        </select>
+        <button onClick={markAllAsRead}>Mark All Read</button>
       </div>
+
+      {loading ? (
+        <p>Loading notifications...</p>
+      ) : (
+        <ul className="notification-list">
+          {filteredNotifications.map((note) => (
+            <li
+              key={note.notificationId}
+              className={`notification-item ${note.read ? 'read' : 'unread'}`}
+              onClick={() => navigate(`/ticket-details/${note.ticketId}`)}
+            >
+              <strong>{note.message}</strong>
+              <span>{new Date(note.createdAt).toLocaleString()}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
-
-    {loading ? (
-      <p>Loading notifications...</p>
-    ) : (
-      <ul className="notification-list">
-        {notifications.map((n) => (
-          <li
-            key={n.notificationId}
-            className="notification-card"
-            onClick={() => navigate(`/ticket-details/${n.ticketId}`)}
-          >
-            <span className={`dot ${getIconColor(n.type || '')}`} />
-            <div className="notification-content">
-              <p className="message-title">{n.message.split(':')[0]}</p>
-              <p className="message-body">{n.message.split(':')[1]}</p>
-              <p className="timestamp">{new Date(n.timestamp).toLocaleString()}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-</div>
-
-); }
-
-
-
-
-/* NotificationsPage.css */
-
-.notifications-page {
-  padding: 2rem;
-  background-color: #f9f9f9;
-  min-height: 100vh;
-  font-family: Arial, sans-serif;
-}
-
-.notifications-container {
-  max-width: 700px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 10px;
-  padding: 2rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-}
-
-.notifications-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.notifications-header h2 {
-  font-size: 1.5rem;
-  color: #1f2937;
-}
-
-.notifications-header .controls button {
-  margin-left: 10px;
-  padding: 6px 12px;
-  font-size: 0.9rem;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #fff;
-  cursor: pointer;
-}
-
-.notifications-header .controls button:hover {
-  background-color: #f0f0f0;
-}
-
-.notification-item {
-  display: flex;
-  align-items: flex-start;
-  background-color: #f3f4f6;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.notification-item:hover {
-  background-color: #e5e7eb;
-}
-
-.notification-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-right: 1rem;
-  margin-top: 5px;
-}
-
-.dot-blue { background-color: #3b82f6; }
-.dot-green { background-color: #10b981; }
-.dot-red { background-color: #ef4444; }
-.dot-yellow { background-color: #f59e0b; }
-
-.notification-content {
-  flex-grow: 1;
-}
-
-.notification-content strong {
-  display: block;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 0.3rem;
-}
-
-.notification-content p {
-  margin: 0;
-  color: #4b5563;
-  font-size: 0.95rem;
-}
-
-.notification-time {
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin-top: 0.25rem;
+  );
 }
