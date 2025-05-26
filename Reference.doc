@@ -1,236 +1,78 @@
-import React, { useEffect, useState } from 'react';
+// src/components/Navbar.tsx
+import React from 'react';
 import { Link } from 'react-router-dom';
-import CustomerDashboard from '../components/CustomerDashboard';
-import AgentDashboard from '../components/AgentDashboard';
-import AdminDashboard from '../components/AdminDashboard';
-import './HomePage.css';
+import './Navbar.css';
 
-interface User {
-  role: 'customer' | 'agent' | 'admin' | string;
-  name: string;
-}
-
-interface FeatureCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}
-
-const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description }) => (
-  <div className="feature-card">
-    <div className="feature-icon">{icon}</div>
-    <div className="feature-content">
-      <h3>{title}</h3>
-      <p>{description}</p>
-    </div>
-  </div>
-);
-
-const HomePage: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setTimeout(() => {
-      const mockUser: User = {
-        name: 'John Doe',
-        role: 'admin',
-      };
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      setIsLoading(false);
-    }, 1000);
-  }, []);
-
-  if (isLoading) {
-    return <div className="loading">Loading dashboard...</div>;
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="home-container">
-        <section className="hero">
-          <div className="hero-icon">🎫</div>
-          <h1>Streamline Your Customer Support</h1>
-          <p>
-            Efficiently manage, track, and resolve customer inquiries with our intuitive ticket
-            management system. Log in to access your dashboard and support tools.
-          </p>
-          <Link to="/auth/login" className="login-button">Login to Your Account</Link>
-        </section>
-
-        <section className="features">
-          <h2>Key Features</h2>
-          <div className="feature-grid">
-            <FeatureCard
-              icon={<span>➕</span>}
-              title="Easy Ticket Creation"
-              description="Customers can quickly submit new support requests with relevant details and attachments."
-            />
-            <FeatureCard
-              icon={<span>📋</span>}
-              title="Comprehensive Management"
-              description="Support agents can view assigned tickets, update statuses, and track resolution progress."
-            />
-            <FeatureCard
-              icon={<span>🔒</span>}
-              title="Organized & Secure"
-              description="All support interactions are logged and managed securely with an audit trail."
-            />
-          </div>
-        </section>
+export default function Navbar() {
+  return (
+    <nav className="navbar">
+      <div className="logo">SupportDesk</div>
+      <div className="nav-links">
+        <Link to="/">Home</Link>
+        <Link to="/dashboard">Dashboard</Link>
+        <Link to="/notifications">Notifications</Link>
+        <Link to="/profile">Profile</Link>
       </div>
-    );
-  }
-
-  if (user) {
-    switch (user.role) {
-      case 'customer':
-        return <CustomerDashboard />;
-      case 'agent':
-        return <AgentDashboard />;
-      case 'admin':
-        return <AdminDashboard />;
-      default:
-        return (
-          <div className="error-card">
-            <h3>Error</h3>
-            <p>Invalid user role. Please contact support.</p>
-          </div>
-        );
-    }
-  }
-
-  return null;
-};
-
-export default HomePage;
-
-
-
-
-/* General Layout */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 20px;
+    </nav>
+  );
 }
 
-/* Hero Section */
-.hero {
-  text-align: center;
-  margin-bottom: 60px;
+
+// src/components/Layout.tsx
+import React from 'react';
+import Navbar from './Navbar';
+
+interface Props {
+  children: React.ReactNode;
 }
 
-.hero-icon {
-  font-size: 48px;
-  color: #3b82f6;
-  animation: pulse 1.5s infinite;
+export default function Layout({ children }: Props) {
+  return (
+    <div>
+      <Navbar />
+      <main>{children}</main>
+    </div>
+  );
 }
 
-.hero h1 {
-  font-size: 2.8rem;
-  font-weight: 800;
-  color: #1f2937;
-  margin-top: 20px;
+
+import React from 'react';
+import Layout from '../components/Layout';
+
+export default function CustomerDashboard() {
+  return (
+    <Layout>
+      <div className="dashboard-content">
+        <h1>Customer Dashboard</h1>
+        {/* dashboard content here */}
+      </div>
+    </Layout>
+  );
 }
 
-.hero p {
-  font-size: 1.2rem;
-  color: #6b7280;
-  margin: 20px auto 40px;
-  max-width: 700px;
-}
 
-.hero-button {
-  font-size: 1rem;
-  background-color: #3b82f6;
+/* Navbar.css */
+.navbar {
+  background-color: #1e3a8a;
   color: white;
-  padding: 12px 30px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+  padding: 16px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.hero-button:hover {
-  background-color: #2563eb;
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
 }
 
-/* Features Section */
-.features h2 {
-  text-align: center;
-  font-size: 2rem;
-  color: #1f2937;
-  margin-bottom: 30px;
+.nav-links a {
+  margin-left: 20px;
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
 }
 
-.features-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
-}
-
-@media (min-width: 768px) {
-  .features-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .features-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.feature-card {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  text-align: center;
-  transition: box-shadow 0.3s ease;
-}
-
-.feature-card:hover {
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
-}
-
-.feature-icon {
-  font-size: 36px;
-  color: #3b82f6;
-  margin-bottom: 10px;
-}
-
-.feature-title {
-  font-size: 1.2rem;
-  color: #111827;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.feature-desc {
-  font-size: 0.95rem;
-  color: #6b7280;
-}
-
-/* Skeleton Loading (basic styles) */
-.skeleton {
-  background-color: #e5e7eb;
-  border-radius: 4px;
-  margin: 10px auto;
-  animation: pulse 1.5s infinite ease-in-out;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
-  100% {
-    opacity: 1;
-  }
+.nav-links a:hover {
+  text-decoration: underline;
 }
