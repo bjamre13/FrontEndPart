@@ -1,54 +1,63 @@
-import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+useEffect(() => {
+  if (!ticketId) return;
 
-export default function TicketDetailsPage() {
-  const { ticketId } = useParams();
-  const [ticket, setTicket] = useState(null);
-  const [customerName, setCustomerName] = useState('');
-  const [agentName, setAgentName] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  setLoading(true);
+  setError('');
 
-  useEffect(() => {
-    if (!ticketId) return;
-
-    setLoading(true);
-    setError('');
-
-    fetch(`http://localhost:8765/api/tickets/${ticketId}`, {
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+  fetch(`http://localhost:8765/api/tickets/${ticketId}`, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then(res => {
+      if (!res.ok) throw new Error('Unauthorized or Ticket not found');
+      return res.json();
     })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error('Unauthorized or Ticket not found');
-        }
-        return res.json();
-      })
-      .then(data => {
-        setTicket(data);
+    .then(ticketData => {
+      setTicket(ticketData);
 
-        // Fetch customer name
-        fetch(`http://localhost:8765/api/users/${data.userId}`, { credentials: 'include' })
+      // Fetch customer name
+      fetch(`http://localhost:8765/api/users/${ticketData.userId}`, { credentials: 'include' })
+        .then(res => res.json())
+        .then(user => setCustomerName(user.name))
+        .catch(() => setCustomerName(`User #${ticketData.userId}`));
+
+      // Fetch agent name
+      if (ticketData.agentId) {
+        fetch(`http://localhost:8765/api/users/${ticketData.agentId}`, { credentials: 'include' })
           .then(res => res.json())
-          .then(user => setCustomerName(user.name))
-          .catch(() => setCustomerName(`User #${data.userId}`));
+          .then(agent => setAgentName(agent.name))
+          .catch(() => setAgentName(`Agent #${ticketData.agentId}`));
+      }
 
-        // Fetch agent name if available
-        if (data.agentId) {
-          fetch(`http://localhost:8765/api/users/${data.agentId}`, { credentials: 'include' })
-            .then(res => res.json())
-            .then(agent => setAgentName(agent.name))
-            .catch(() => setAgentName(`Agent #${data.agentId}`));
-        }
+      // Fetch attachments
+      fetch(`http://localhost:8765/api/attachments/ticket/${ticketData.id}`, { credentials: 'include' })
+        .then(res => res.json())
+        .then(files => setAttachments(files))
+        .catch(() => setAttachments([]));
 
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching ticket:', err);
-        setError('Failed to load ticket.');
-        setLoading(false);
-      });
-  }, [ticketId]);
+      // Fetch comments
+      fetch(`http://localhost:8765/api/comments/ticket/${ticketData.id}`, { credentials: 'include' })
+        .then(res => res.json())
+        .then(comments => setComments(comments))
+        .catch(() => setComments([]));
+
+      setLoading(false);
+    })
+    .catch(err => {
+      console.error('Error loading ticket details:', err);
+      setError('Failed to load ticket.');
+      setLoading(false);
+    });
+}, [ticketId]);
+
+
+
+const [ticket, setTicket] = useState(null);
+const [customerName, setCustomerName] = useState('');
+const [agentName, setAgentName] = useState('');
+const [attachments, setAttachments] = useState<string[]>([]);
+const [comments, setComments] = useState<CommentType[]>([]);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState('');
+
+
