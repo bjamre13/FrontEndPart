@@ -8,3 +8,34 @@ public ResponseEntity<List<String>> getAttachmentsByTicket(@PathVariable Long ti
 }
 
 
+const [attachments, setAttachments] = useState<string[]>([]);
+
+useEffect(() => {
+  if (!ticketId) return;
+
+  // Fetch ticket info (including comments)
+  fetch(`http://localhost:8765/api/tickets/${ticketId}`)
+    .then(res => res.json())
+    .then(data => setTicket(data))
+    .catch(err => console.error('Error fetching ticket:', err));
+
+  // Fetch attachments for this ticket
+  fetch(`http://localhost:8765/api/attachments/ticket/${ticketId}`)
+    .then(res => res.json())
+    .then(data => setAttachments(data)) // expected: array of filenames or URLs
+    .catch(err => console.error('Error fetching attachments:', err));
+}, [ticketId]);
+
+
+<h3>Attachments</h3>
+{attachments.length > 0 ? (
+  <ul>
+    {attachments.map((file, idx) => (
+      <li key={idx}>
+        <a href={`http://localhost:8765/uploads/${file}`} download>{file}</a>
+      </li>
+    ))}
+  </ul>
+) : (
+  <p>No attachments available.</p>
+)}
