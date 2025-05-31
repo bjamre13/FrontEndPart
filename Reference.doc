@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-
-type TicketStatus = 'Open' | 'In Progress' | 'Resolved' | 'Closed';
-type TicketPriority = 'Low' | 'Medium' | 'High';
-
-interface User {
+interface Ticket {
+  ticketId: number;
   userId: number;
-  name: string;
-  email: string;
+  agentId?: number;
+  title: string;
+  description: string;
+  status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  createdAt?: string;
+  updatedAt?: string;
+  attachments?: string[];
+  comments?: Comment[];
 }
 
 interface Comment {
@@ -16,122 +18,26 @@ interface Comment {
   message: string;
 }
 
-interface Ticket {
-  id: number;
-  title: string;
-  description: string;
-  createdBy: User;
-  assignedTo?: User;
-  status: TicketStatus;
-  priority: TicketPriority;
-  createdAt: string;
-  updatedAt: string;
-  comments?: Comment[];
-  attachments?: string[];
-}
-
-export default function TicketDetailsPage() {
-  const { ticketId } = useParams();
-  const [ticket, setTicket] = useState<Ticket | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!ticketId) return;
-
-    fetch(`http://localhost:8765/api/tickets/${ticketId}`, {
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Unauthorized or Ticket not found');
-        return res.json();
-      })
-      .then((data) => {
-        console.log('Fetched ticket:', data);
-        setTicket(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error fetching ticket:', err);
-        setError('Failed to load ticket details.');
-        setLoading(false);
-      });
-  }, [ticketId]);
-
-  if (loading) return <p className="loading">Loading ticket details...</p>;
-  if (error) return <p className="error-text">{error}</p>;
-  if (!ticket) return <p className="error-text">Ticket not found.</p>;
-
-  return (
-    <div className="ticket-details">
-      <h2>Ticket #{ticket.id}: {ticket.title}</h2>
-      <p><strong>Customer:</strong> {ticket.createdBy?.name} ({ticket.createdBy?.email})</p>
-      <p><strong>Created:</strong> {new Date(ticket.createdAt).toLocaleString()}</p>
-      <p><strong>Last Updated:</strong> {new Date(ticket.updatedAt).toLocaleString()}</p>
-      <p><strong>Status:</strong> <span className={`status ${ticket.status.toLowerCase().replace(/\s/g, '-')}`}>{ticket.status}</span></p>
-      <p><strong>Priority:</strong> <span className={`priority ${ticket.priority.toLowerCase()}`}>{ticket.priority}</span></p>
-
-      <h3>Description</h3>
-      <p>{ticket.description}</p>
-
-      <h3>Attachments</h3>
-      <ul>
-        {(ticket.attachments || []).map((file, idx) => (
-          <li key={idx}>
-            <a href={`http://localhost:8765/uploads/${file}`} download>{file}</a>
-          </li>
-        ))}
-      </ul>
-
-      <h3>Communication</h3>
-      {(ticket.comments || []).map((comment, idx) => (
-        <div key={idx} className="comment">
-          <strong>{comment.author} ({comment.time})</strong>
-          <p>{comment.message}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 
+useEffect(() => {
+  if (!ticket) return;
 
-.ticket-details {
-  padding: 2rem;
-  max-width: 800px;
-  margin: auto;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  font-family: Arial, sans-serif;
-}
+  // Fetch customer name
+  fetch(`http://localhost:8765/api/users/${ticket.userId}`, { credentials: 'include' })
+    .then(res => res.json())
+    .then(data => setCustomerName(data.name))
+    .catch(() => setCustomerName(`User #${ticket.userId}`));
 
-.ticket-details h2 {
-  margin-bottom: 0.5rem;
-}
+  // Fetch agent name only if assigned
+  if (ticket.agentId) {
+    fetch(`http://localhost:8765/api/users/${ticket.agentId}`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => setAgentName(data.name))
+      .catch(() => setAgentName(`Agent #${ticket.agentId}`));
+  }
+}, [ticket]);
 
-.ticket-details .status,
-.ticket-details .priority {
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  color: #fff;
-  font-size: 0.85rem;
-  display: inline-block;
-}
 
-.status.open { background-color: #007bff; }
-.status.in-progress { background-color: #ffc107; }
-.status.resolved { background-color: #28a745; }
-.status.closed { background-color: #6c757d; }
-
-.priority.low { background-color: #6c757d; }
-.priority.medium { background-color: #ffc107; }
-.priority.high { background-color: #dc3545; }
-
-.comment {
-  border-top: 1px solid #eee;
-  padding: 0.75rem 0;
-}
+<p><strong>Customer:</strong> {customerName}</p>
+<p><strong>Agent:</strong> {agentName || 'Unassigned'}</p>
