@@ -1,41 +1,25 @@
-@GetMapping("/attachments/ticket/{ticketId}")
-public ResponseEntity<List<String>> getAttachmentsByTicket(@PathVariable Long ticketId) {
-    List<Attachment> attachments = attachmentRepository.findByTicketId(ticketId);
-    List<String> filePaths = attachments.stream()
-        .map(Attachment::getFilePath)
-        .collect(Collectors.toList());
-    return ResponseEntity.ok(filePaths);
-}
-
-
-const [attachments, setAttachments] = useState<string[]>([]);
-
-useEffect(() => {
-  if (!ticketId) return;
-
-  // Fetch ticket info (including comments)
-  fetch(`http://localhost:8765/api/tickets/${ticketId}`)
-    .then(res => res.json())
-    .then(data => setTicket(data))
-    .catch(err => console.error('Error fetching ticket:', err));
-
-  // Fetch attachments for this ticket
-  fetch(`http://localhost:8765/api/attachments/ticket/${ticketId}`)
-    .then(res => res.json())
-    .then(data => setAttachments(data)) // expected: array of filenames or URLs
-    .catch(err => console.error('Error fetching attachments:', err));
-}, [ticketId]);
-
-
 <h3>Attachments</h3>
 {attachments.length > 0 ? (
   <ul>
-    {attachments.map((file, idx) => (
-      <li key={idx}>
-        <a href={`http://localhost:8765/uploads/${file}`} download>{file}</a>
+    {attachments.map((filePath, index) => (
+      <li key={index}>
+        <a href={`http://localhost:8765${filePath}`} target="_blank" rel="noopener noreferrer">
+          {filePath.split('/').pop()} {/* Shows only the filename */}
+        </a>
       </li>
     ))}
   </ul>
 ) : (
   <p>No attachments available.</p>
 )}
+
+
+@GetMapping("/uploads/{folder}/{filename}")
+public ResponseEntity<Resource> serveFile(@PathVariable String folder, @PathVariable String filename) {
+    Path file = Paths.get("uploads", folder).resolve(filename);
+    Resource resource = new UrlResource(file.toUri());
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+        .body(resource);
+}
