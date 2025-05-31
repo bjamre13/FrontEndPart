@@ -1,84 +1,137 @@
 import React, { useEffect, useState } from 'react';
-import './NotificationsPage.css';
-import { useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
-interface Notification {
-  notificationId: number;
+type TicketStatus = 'Open' | 'In Progress' | 'Resolved' | 'Closed';
+type TicketPriority = 'Low' | 'Medium' | 'High';
+
+interface User {
   userId: number;
-  ticketId: number;
-  message: string;
-  createdAt: string;
-  read: boolean;
+  name: string;
+  email: string;
 }
 
-type FilterType = 'ALL' | 'READ' | 'UNREAD';
+interface Comment {
+  author: string;
+  time: string;
+  message: string;
+}
 
-export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+interface Ticket {
+  id: number;
+  title: string;
+  description: string;
+  createdBy: User;
+  assignedTo?: User;
+  status: TicketStatus;
+  priority: TicketPriority;
+  createdAt: string;
+  updatedAt: string;
+  comments?: Comment[];
+  attachments?: string[];
+}
+
+export default function TicketDetailsPage() {
+  const { ticketId } = useParams();
+  const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<FilterType>('ALL');
-  const navigate = useNavigate();
-  const userId = JSON.parse(localStorage.getItem('user') || '{}').userId;
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`http://localhost:8765/api/notifications/user/${userId}`, {
-      credentials: 'include'
+    if (!ticketId) return;
+
+    fetch(`http://localhost:8765/api/tickets/${ticketId}`, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     })
-      .then(res => res.json())
-      .then(data => {
-        setNotifications(data);
+      .then((res) => {
+        if (!res.ok) throw new Error('Unauthorized or Ticket not found');
+        return res.json();
+      })
+      .then((data) => {
+        console.log('Fetched ticket:', data);
+        setTicket(data);
         setLoading(false);
       })
-      .catch(err => {
-        console.error("Failed to fetch notifications:", err);
+      .catch((err) => {
+        console.error('Error fetching ticket:', err);
+        setError('Failed to load ticket details.');
         setLoading(false);
       });
-  }, [userId]);
+  }, [ticketId]);
 
-  const filteredNotifications = notifications.filter(n => {
-    if (filter === 'READ') return n.read;
-    if (filter === 'UNREAD') return !n.read;
-    return true;
-  });
-
-  const markAllAsRead = () => {
-    fetch(`http://localhost:8765/api/notifications/user/${userId}/mark-all-read`, {
-      method: 'PUT',
-      credentials: 'include'
-    }).then(() => {
-      setNotifications(notifications.map(n => ({ ...n, read: true })));
-    });
-  };
+  if (loading) return <p className="loading">Loading ticket details...</p>;
+  if (error) return <p className="error-text">{error}</p>;
+  if (!ticket) return <p className="error-text">Ticket not found.</p>;
 
   return (
-    <div className="notifications-page">
-      <h2>Notifications</h2>
+    <div className="ticket-details">
+      <h2>Ticket #{ticket.id}: {ticket.title}</h2>
+      <p><strong>Customer:</strong> {ticket.createdBy?.name} ({ticket.createdBy?.email})</p>
+      <p><strong>Created:</strong> {new Date(ticket.createdAt).toLocaleString()}</p>
+      <p><strong>Last Updated:</strong> {new Date(ticket.updatedAt).toLocaleString()}</p>
+      <p><strong>Status:</strong> <span className={`status ${ticket.status.toLowerCase().replace(/\s/g, '-')}`}>{ticket.status}</span></p>
+      <p><strong>Priority:</strong> <span className={`priority ${ticket.priority.toLowerCase()}`}>{ticket.priority}</span></p>
 
-      <div className="actions">
-        <select onChange={(e) => setFilter(e.target.value as FilterType)} value={filter}>
-          <option value="ALL">All Types</option>
-          <option value="UNREAD">Unread</option>
-          <option value="READ">Read</option>
-        </select>
-        <button onClick={markAllAsRead}>Mark All Read</button>
-      </div>
+      <h3>Description</h3>
+      <p>{ticket.description}</p>
 
-      {loading ? (
-        <p>Loading notifications...</p>
-      ) : (
-        <ul className="notification-list">
-          {filteredNotifications.map((note) => (
-            <li
-              key={note.notificationId}
-              className={`notification-item ${note.read ? 'read' : 'unread'}`}
-              onClick={() => navigate(`/ticket-details/${note.ticketId}`)}
-            >
-              <strong>{note.message}</strong>
-              <span>{new Date(note.createdAt).toLocaleString()}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+      <h3>Attachments</h3>
+      <ul>
+        {(ticket.attachments || []).map((file, idx) => (
+          <li key={idx}>
+            <a href={`http://localhost:8765/uploads/${file}`} download>{file}</a>
+          </li>
+        ))}
+      </ul>
+
+      <h3>Communication</h3>
+      {(ticket.comments || []).map((comment, idx) => (
+        <div key={idx} className="comment">
+          <strong>{comment.author} ({comment.time})</strong>
+          <p>{comment.message}</p>
+        </div>
+      ))}
     </div>
   );
+}
+
+
+
+.ticket-details {
+  padding: 2rem;
+  max-width: 800px;
+  margin: auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  font-family: Arial, sans-serif;
+}
+
+.ticket-details h2 {
+  margin-bottom: 0.5rem;
+}
+
+.ticket-details .status,
+.ticket-details .priority {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.85rem;
+  display: inline-block;
+}
+
+.status.open { background-color: #007bff; }
+.status.in-progress { background-color: #ffc107; }
+.status.resolved { background-color: #28a745; }
+.status.closed { background-color: #6c757d; }
+
+.priority.low { background-color: #6c757d; }
+.priority.medium { background-color: #ffc107; }
+.priority.high { background-color: #dc3545; }
+
+.comment {
+  border-top: 1px solid #eee;
+  padding: 0.75rem 0;
 }
