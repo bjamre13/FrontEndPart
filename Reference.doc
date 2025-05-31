@@ -1,63 +1,10 @@
-interface Comment {
-  commentId: number;
-  ticketId: number;
-  userId: number;
-  content: string;
-  createdAt: string;
-  internal: boolean;
-}
-
-interface Ticket {
-  id: number;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  createdAt: string;
-  updatedAt: string;
-  comments: Comment[]; // make sure it's included
+@GetMapping("/attachments/ticket/{ticketId}")
+public ResponseEntity<List<String>> getAttachmentsByTicket(@PathVariable Long ticketId) {
+    List<Attachment> attachments = attachmentRepository.findByTicketId(ticketId);
+    List<String> filePaths = attachments.stream()
+        .map(Attachment::getFilePath)
+        .collect(Collectors.toList());
+    return ResponseEntity.ok(filePaths);
 }
 
 
-<h3>Communication</h3>
-{ticket.comments?.length > 0 ? (
-  ticket.comments.map((comment) => (
-    <div key={comment.commentId} className="comment-box">
-      <div className="comment-meta">
-        <strong>User {comment.userId}</strong> —{" "}
-        {new Date(comment.createdAt).toLocaleString()}
-        {comment.internal && <span className="internal-tag">Internal</span>}
-      </div>
-      <p className="comment-text">{comment.content}</p>
-    </div>
-  ))
-) : (
-  <p>No comments available.</p>
-)}
-
-
-
-.comment-box {
-  padding: 10px;
-  border-left: 3px solid #007bff;
-  margin-bottom: 15px;
-  background: #f9f9f9;
-}
-
-.comment-meta {
-  font-size: 0.9rem;
-  color: #555;
-}
-
-.comment-text {
-  margin-top: 5px;
-}
-
-.internal-tag {
-  color: #fff;
-  background: #dc3545;
-  padding: 2px 6px;
-  font-size: 0.75rem;
-  margin-left: 8px;
-  border-radius: 4px;
-}
