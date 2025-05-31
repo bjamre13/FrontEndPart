@@ -1,63 +1,113 @@
-useEffect(() => {
-  if (!ticketId) return;
+-- Ticket 5001 - user 1015
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5001, 1015, 'Unable to access my account since yesterday.', 0, NOW()),
+(5001, 1002, 'Issue acknowledged, looking into logs.', 1, NOW()),
+(5001, 1002, 'Credentials mismatch found, resetting.', 0, NOW());
 
-  setLoading(true);
-  setError('');
+-- Ticket 5002 - user 1016
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5002, 1016, 'Requesting a new feature in dashboard.', 0, NOW()),
+(5002, 1005, 'Design team notified.', 1, NOW()),
+(5002, 1005, 'Added to Q3 backlog.', 0, NOW());
 
-  fetch(`http://localhost:8765/api/tickets/${ticketId}`, {
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-  })
-    .then(res => {
-      if (!res.ok) throw new Error('Unauthorized or Ticket not found');
-      return res.json();
-    })
-    .then(ticketData => {
-      setTicket(ticketData);
+-- Ticket 5003 - user 1016
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5003, 1016, 'Unable to reset password.', 0, NOW()),
+(5003, 1019, 'Confirmed issue, working on fix.', 1, NOW()),
+(5003, 1019, 'Temporary link sent to user.', 0, NOW());
 
-      // Fetch customer name
-      fetch(`http://localhost:8765/api/users/${ticketData.userId}`, { credentials: 'include' })
-        .then(res => res.json())
-        .then(user => setCustomerName(user.name))
-        .catch(() => setCustomerName(`User #${ticketData.userId}`));
+-- Ticket 5004 - user 1016
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5004, 1016, 'Raised a ticket for the same issue again.', 0, NOW()),
+(5004, 1019, 'Merging with previous ticket.', 1, NOW()),
+(5004, 1019, 'Resolved and notified user.', 0, NOW());
 
-      // Fetch agent name
-      if (ticketData.agentId) {
-        fetch(`http://localhost:8765/api/users/${ticketData.agentId}`, { credentials: 'include' })
-          .then(res => res.json())
-          .then(agent => setAgentName(agent.name))
-          .catch(() => setAgentName(`Agent #${ticketData.agentId}`));
-      }
+-- Ticket 5005 - user 1016
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5005, 1016, 'Ticket not showing in my profile.', 0, NOW()),
+(5005, 1019, 'Checked DB, ticket is present.', 1, NOW()),
+(5005, 1019, 'Suggested clearing cache.', 0, NOW());
 
-      // Fetch attachments
-      fetch(`http://localhost:8765/api/attachments/ticket/${ticketData.id}`, { credentials: 'include' })
-        .then(res => res.json())
-        .then(files => setAttachments(files))
-        .catch(() => setAttachments([]));
+-- Ticket 5006 - user 1019
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5006, 1019, 'Notification emails not arriving.', 0, NOW()),
+(5006, 1019, 'SMTP config failed last night.', 1, NOW()),
+(5006, 1019, 'Re-configured SMTP settings.', 0, NOW());
 
-      // Fetch comments
-      fetch(`http://localhost:8765/api/comments/ticket/${ticketData.id}`, { credentials: 'include' })
-        .then(res => res.json())
-        .then(comments => setComments(comments))
-        .catch(() => setComments([]));
+-- Ticket 5007 - user 1020
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5007, 1020, 'Profile update fails on mobile.', 0, NOW()),
+(5007, 1040, 'Confirmed on Android 13.', 1, NOW()),
+(5007, 1040, 'Bugfix pushed in patch 1.0.4.', 0, NOW());
 
-      setLoading(false);
-    })
-    .catch(err => {
-      console.error('Error loading ticket details:', err);
-      setError('Failed to load ticket.');
-      setLoading(false);
-    });
-}, [ticketId]);
+-- Ticket 5008 - user 1021
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5008, 1021, 'Notifications not clearing.', 0, NOW()),
+(5008, 1041, 'UX bug confirmed, low priority.', 1, NOW()),
+(5008, 1041, 'Added fix in next release.', 0, NOW());
 
+-- Ticket 5009 - user 1022
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5009, 1022, 'Server crashed during login.', 0, NOW()),
+(5009, 1042, 'Logs show out-of-memory error.', 1, NOW()),
+(5009, 1042, 'Restarted and patched.', 0, NOW());
 
+-- Ticket 5010 - user 1023
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5010, 1023, 'App is lagging after recent update.', 0, NOW()),
+(5010, 1043, 'Investigating performance issues.', 1, NOW()),
+(5010, 1043, 'Updated third-party libraries.', 0, NOW());
 
-const [ticket, setTicket] = useState(null);
-const [customerName, setCustomerName] = useState('');
-const [agentName, setAgentName] = useState('');
-const [attachments, setAttachments] = useState<string[]>([]);
-const [comments, setComments] = useState<CommentType[]>([]);
-const [loading, setLoading] = useState(true);
-const [error, setError] = useState('');
+-- Ticket 5011 - user 1024
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5011, 1024, 'Need correction in invoice.', 0, NOW()),
+(5011, 1045, 'Finance team reviewing.', 1, NOW()),
+(5011, 1045, 'Updated and mailed user.', 0, NOW());
 
+-- Ticket 5012 - user 1025
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5012, 1025, 'App crashing on login screen.', 0, NOW()),
+(5012, 1045, 'Crash logs point to React bug.', 1, NOW()),
+(5012, 1045, 'Updated frontend code.', 0, NOW());
 
+-- Ticket 5013 - user 1026
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5013, 1026, 'Email login issue - showing timeout.', 0, NOW()),
+(5013, 1046, 'SMTP delay confirmed.', 1, NOW()),
+(5013, 1046, 'Resolved with server restart.', 0, NOW());
+
+-- Ticket 5014 - user 1017
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5014, 1017, 'Subscription unexpectedly ended.', 0, NOW()),
+(5014, 1047, 'Renewal script failed last night.', 1, NOW()),
+(5014, 1047, 'Manually extended subscription.', 0, NOW());
+
+-- Ticket 5015 - user 1018
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5015, 1018, 'Requesting new ticket urgently.', 0, NOW()),
+(5015, 1048, 'Flagged for priority assignment.', 1, NOW()),
+(5015, 1048, 'Assigned to senior agent.', 0, NOW());
+
+-- Ticket 5016 - user 1018
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5016, 1018, 'Dark mode request.', 0, NOW()),
+(5016, 1048, 'UX team evaluating scope.', 1, NOW()),
+(5016, 1048, 'Included in roadmap.', 0, NOW());
+
+-- Ticket 5017 - user 1018
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5017, 1018, 'Crash when opening attachments.', 0, NOW()),
+(5017, 1048, 'File parsing bug identified.', 1, NOW()),
+(5017, 1048, 'Deployed hotfix.', 0, NOW());
+
+-- Ticket 5023 - user 1018
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5023, 1018, 'Old invoice showing wrong info.', 0, NOW()),
+(5023, 1048, 'Mismatch in date parsing.', 1, NOW()),
+(5023, 1048, 'Corrected and emailed.', 0, NOW());
+
+-- Ticket 5024 - user 1018
+INSERT INTO comments (ticket_id, user_id, content, is_internal, created_at) VALUES
+(5024, 1018, 'Invoice incorrect again.', 0, NOW()),
+(5024, 1048, 'Issue escalated to billing.', 1, NOW()),
+(5024, 1048, 'Final correction mailed.', 0, NOW());
