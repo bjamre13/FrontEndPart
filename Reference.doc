@@ -1,43 +1,54 @@
-interface Ticket {
-  ticketId: number;
-  userId: number;
-  agentId?: number;
-  title: string;
-  description: string;
-  status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  createdAt?: string;
-  updatedAt?: string;
-  attachments?: string[];
-  comments?: Comment[];
-}
+import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
-interface Comment {
-  author: string;
-  time: string;
-  message: string;
-}
+export default function TicketDetailsPage() {
+  const { ticketId } = useParams();
+  const [ticket, setTicket] = useState(null);
+  const [customerName, setCustomerName] = useState('');
+  const [agentName, setAgentName] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (!ticketId) return;
 
+    setLoading(true);
+    setError('');
 
-useEffect(() => {
-  if (!ticket) return;
+    fetch(`http://localhost:8765/api/tickets/${ticketId}`, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Unauthorized or Ticket not found');
+        }
+        return res.json();
+      })
+      .then(data => {
+        setTicket(data);
 
-  // Fetch customer name
-  fetch(`http://localhost:8765/api/users/${ticket.userId}`, { credentials: 'include' })
-    .then(res => res.json())
-    .then(data => setCustomerName(data.name))
-    .catch(() => setCustomerName(`User #${ticket.userId}`));
+        // Fetch customer name
+        fetch(`http://localhost:8765/api/users/${data.userId}`, { credentials: 'include' })
+          .then(res => res.json())
+          .then(user => setCustomerName(user.name))
+          .catch(() => setCustomerName(`User #${data.userId}`));
 
-  // Fetch agent name only if assigned
-  if (ticket.agentId) {
-    fetch(`http://localhost:8765/api/users/${ticket.agentId}`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => setAgentName(data.name))
-      .catch(() => setAgentName(`Agent #${ticket.agentId}`));
-  }
-}, [ticket]);
+        // Fetch agent name if available
+        if (data.agentId) {
+          fetch(`http://localhost:8765/api/users/${data.agentId}`, { credentials: 'include' })
+            .then(res => res.json())
+            .then(agent => setAgentName(agent.name))
+            .catch(() => setAgentName(`Agent #${data.agentId}`));
+        }
 
-
-<p><strong>Customer:</strong> {customerName}</p>
-<p><strong>Agent:</strong> {agentName || 'Unassigned'}</p>
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching ticket:', err);
+        setError('Failed to load ticket.');
+        setLoading(false);
+      });
+  }, [ticketId]);
