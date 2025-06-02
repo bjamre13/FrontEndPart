@@ -1,19 +1,20 @@
-public User changeUserRole(Long userId, String newRole) {
-    User user = userRepository.findById(userId).orElseThrow(...);
-    
-    // Clear existing roles and assign new one
-    user.getRoles().clear();
-    user.getRoles().add(Role.valueOf(newRole.toUpperCase()));
+import React, { useEffect, useState } from 'react'; import './ManageUsersPage.css';
 
-    // Set active based on new role
-    if (newRole.equalsIgnoreCase("admin") || newRole.equalsIgnoreCase("customer")) {
-        user.setActive(false); // Not resolving tickets
-    } else {
-        user.setActive(true); // Agent available
-    }
+export type UserRole = 'customer' | 'agent' | 'admin';
 
-    return userRepository.save(user);
-}
+export interface User { id: string; name: string; email: string; role: UserRole; }
 
+const ROLES: UserRole[] = ['customer', 'agent', 'admin'];
 
+const ManageUsersPage: React.FC = () => { const [users, setUsers] = useState<User[]>([]); const [isLoading, setIsLoading] = useState(true);
+
+useEffect(() => { fetch('http://localhost:8765/api/users') .then(res => res.json()) .then(data => setUsers(data)) .catch(err => console.error('Error fetching users:', err)) .finally(() => setIsLoading(false)); }, []);
+
+const handleRoleChange = (userId: string, newRole: UserRole) => { setIsLoading(true); fetch(http://localhost:8765/api/users/${userId}/roles, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify([newRole]) }) .then(() => { const updatedUsers = users.map(user => user.id === userId ? { ...user, role: newRole } : user ); setUsers(updatedUsers); }) .catch(err => console.error('Error updating role:', err)) .finally(() => setIsLoading(false)); };
+
+const getUserStatus = (role: string): string => { return role === 'agent' ? 'Active' : 'Inactive'; };
+
+return ( <div className="manage-users-container"> <div className="manage-users-header"> <h2>User Management</h2> </div> <p className="description">View, edit roles, and manage users in the system.</p> {isLoading ? ( <div className="loading">Loading Users...</div> ) : ( <div className="table-wrapper"> <table className="user-table"> <thead> <tr> <th>Name</th> <th>Email</th> <th>Role</th> <th>Status</th> <th className="text-right">Actions</th> </tr> </thead> <tbody> {users.map(user => ( <tr key={user.id}> <td className="font-medium">{user.name}</td> <td>{user.email}</td> <td> <select value={user.role} onChange={e => handleRoleChange(user.id, e.target.value as UserRole)} disabled={isLoading} > {ROLES.map(role => ( <option key={role} value={role}>{role}</option> ))} </select> </td> <td> <span className={getUserStatus(user.role) === 'Active' ? 'status-active' : 'status-inactive'}> {getUserStatus(user.role)} </span> </td> <td className="text-right"> <button disabled className="action-button">Edit</button> <button className="delete-button" disabled={isLoading}>Delete</button> </td> </tr> ))} </tbody> </table> {users.length === 0 && <p className="no-users">No users found.</p>} </div> )} </div> ); };
+
+export default ManageUsersPage;
 
