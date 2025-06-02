@@ -1,59 +1,24 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+<h3>Attachments</h3>
+{attachments && attachments.length > 0 ? (
+  <div className="attachments">
+    {attachments.map((file: string, index: number) => {
+      const fileName = file.split('/').pop(); // gets "image1.png"
+      const fileUrl = `http://localhost:8765/uploads/${fileName}`;
 
-interface Ticket {
-  id: number;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: {
-    name: string;
-    email: string;
-  };
-  attachments: string[];
-  comments: Comment[];
-}
-
-export default function TicketDetailsPage() {
-  const { ticketId } = useParams();
-  const [ticket, setTicket] = useState<Ticket | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!ticketId) return;
-
-    const fetchTicketDetails = async () => {
-      try {
-        setLoading(true);
-
-        const ticketRes = await fetch(`http://localhost:8765/api/tickets/${ticketId}`, {
-          credentials: 'include',
-        });
-        if (!ticketRes.ok) throw new Error('Failed to fetch ticket');
-        const ticketData = await ticketRes.json();
-
-        const attachmentRes = await fetch(`http://localhost:8765/api/attachments/ticket/${ticketId}`, {
-          credentials: 'include',
-        });
-        const attachments: string[] = attachmentRes.ok ? await attachmentRes.json() : [];
-
-        const ticketWithAttachments = { ...ticketData, attachments };
-        setTicket(ticketWithAttachments);
-      } catch (err) {
-        console.error('Error loading ticket:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTicketDetails();
-  }, [ticketId]);
-
-  if (loading) return <p>Loading ticket details...</p>;
-  if (!ticket) return <p>Ticket not found.</p>;
-
-  // JSX rendering the ticket (already provided in earlier response)
-}
+      return (
+        <div key={index} className="attachment-item">
+          <img
+            src={fileUrl}
+            alt={`Attachment ${index + 1}`}
+            className="attachment-image"
+            onError={(e) => {
+              e.currentTarget.src = "/fallback.png"; // optional fallback image
+            }}
+          />
+        </div>
+      );
+    })}
+  </div>
+) : (
+  <p>No attachments available.</p>
+)}
