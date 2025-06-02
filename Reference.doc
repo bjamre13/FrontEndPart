@@ -1,99 +1,28 @@
-import React, { useEffect, useState } from 'react'; import '../pages/AgentDashboard.css'; import { Link, useNavigate } from 'react-router-dom';
-
-interface Ticket { id: string; customer: string; title: string; status: 'New' | 'Pending' | 'In Progress' | 'Resolved'; priority: 'Low' | 'Medium' | 'High'; age: string; }
-
-export default function AgentDashboard() { const [tickets, setTickets] = useState<Ticket[]>([]); const [assigned, setAssigned] = useState(0); const [urgent, setUrgent] = useState(0); const [pending, setPending] = useState(0); const [resolved, setResolved] = useState(0);
-
-const navigate = useNavigate();
-
-useEffect(() => { const user = JSON.parse(localStorage.getItem('user') || '{}'); const agentId = user?.userId;
-
-fetch(`http://localhost:8765/api/tickets/agent/${agentId}`, {
-  credentials: 'include'
-})
-  .then(res => res.json())
-  .then(data => {
-    setTickets(data);
-    setAssigned(data.length);
-    setUrgent(data.filter((t: Ticket) => t.priority === 'High').length);
-    setPending(data.filter((t: Ticket) => t.status === 'Pending').length);
-    setResolved(data.filter((t: Ticket) => t.status === 'Resolved').length);
+useEffect(() => {
+  fetch('http://localhost:8765/api/tickets/user/1016', {
+    credentials: 'include',
   })
-  .catch(err => console.error('Error fetching agent tickets:', err));
-
+    .then(res => {
+      if (!res.ok) throw new Error('Failed to fetch tickets');
+      return res.json();
+    })
+    .then(data => {
+      console.log('Fetched tickets:', data);
+      setTickets(data); // ✅ data is a plain array
+    })
+    .catch(err => {
+      console.error('Error fetching tickets:', err);
+    });
 }, []);
 
-const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => { const selected = e.target.value; if (selected === 'admin') navigate('/admin'); else if (selected === 'agent') navigate('/agent'); else if (selected === 'user') navigate('/user'); };
 
-return ( <div className="dashboard-container"> <header className="navbar"> <h1>Support Ticket System</h1> <nav className="nav-links"> <a href="#">Dashboard</a> <a href="#">Notifications</a> <a href="#">Profile</a> <div className="profile-role-dropdown"> <select id="role_select" onChange={handleRoleChange}> <option value="agent">Agent</option> <option value="user">User</option> <option value="admin">Admin</option> </select> </div> </nav> </header>
 
-<div className="dashboard-content">
-    <aside className="sidebar">
-      <h2>Agent Tools</h2>
-      <ul>
-        <li><a href="#">My Assigned Tickets</a></li>
-        <li><a href="#">All Open Tickets</a></li>
-        <li><a href="#">Search Tickets</a></li>
-        <li><a href="#">My Performance</a></li>
-        <li><a href="#">Calendar/Reminders</a></li>
-      </ul>
-    </aside>
-
-    <main className="main-content">
-      <section className="workload">
-        <h2>My Workload</h2>
-        <div className="status-boxes">
-          <button className="assigned">{assigned} Assigned</button>
-          <button className="urgent">{urgent} Urgent</button>
-          <button className="pending">{pending} Pending</button>
-          <button className="resolved">{resolved} Resolved</button>
-        </div>
-      </section>
-
-      <section className="assigned-tickets">
-        <div className="section-header">
-          <h2>Assigned Tickets</h2>
-          <div className="actions">
-            <select>
-              <option>Filter</option>
-              <option>Status</option>
-              <option>Priority</option>
-            </select>
-            <select>
-              <option>Sort</option>
-              <option>Newest</option>
-              <option>Oldest</option>
-            </select>
-          </div>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Customer</th>
-              <th>Title</th>
-              <th>Status</th>
-              <th>Priority</th>
-              <th>Age</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tickets.map(ticket => (
-              <tr key={ticket.id}>
-                <td>{ticket.id}</td>
-                <td>{ticket.customer}</td>
-                <td>{ticket.title}</td>
-                <td><span className={`status ${ticket.status.toLowerCase()}`}>{ticket.status}</span></td>
-                <td>{ticket.priority}</td>
-                <td>{ticket.age}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-    </main>
-  </div>
-</div>
-
-); }
-
+{Array.isArray(tickets) && tickets.map(ticket => (
+  <tr key={ticket.ticketId}>
+    <td>{ticket.ticketId}</td>
+    <td>{ticket.title}</td>
+    <td>{ticket.priority}</td>
+    <td>{ticket.status}</td>
+    <td>{new Date(ticket.createdAt).toLocaleString()}</td>
+  </tr>
+))}
