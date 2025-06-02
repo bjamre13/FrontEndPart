@@ -1,28 +1,39 @@
-useEffect(() => {
-  fetch('http://localhost:8765/api/tickets/user/1016', {
-    credentials: 'include',
-  })
-    .then(res => {
-      if (!res.ok) throw new Error('Failed to fetch tickets');
-      return res.json();
-    })
-    .then(data => {
-      console.log('Fetched tickets:', data);
-      setTickets(data); // ✅ data is a plain array
-    })
-    .catch(err => {
-      console.error('Error fetching tickets:', err);
-    });
-}, []);
+import React, { useEffect, useState } from 'react';
+
+interface Ticket {
+  ticketId: number;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: number;
+  agentId: number | null;
+}
+
+export default function AgentDashboard() {
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [userId, setUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user && user.userId) {
+      setUserId(user.userId);
+
+      // Now fetch the tickets dynamically for this agent
+      fetch(`http://localhost:8765/api/tickets/user/${user.userId}`, {
+        credentials: 'include',
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to fetch tickets');
+          return res.json();
+        })
+        .then(data => setTickets(data))
+        .catch(err => console.error('Error fetching tickets:', err));
+    } else {
+      console.error('User not found in localStorage');
+    }
+  }, []);
 
 
-
-{Array.isArray(tickets) && tickets.map(ticket => (
-  <tr key={ticket.ticketId}>
-    <td>{ticket.ticketId}</td>
-    <td>{ticket.title}</td>
-    <td>{ticket.priority}</td>
-    <td>{ticket.status}</td>
-    <td>{new Date(ticket.createdAt).toLocaleString()}</td>
-  </tr>
-))}
