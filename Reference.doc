@@ -1,25 +1,42 @@
 <h3>Attachments</h3>
 {attachments.length > 0 ? (
-  <ul>
-    {attachments.map((filePath, index) => (
-      <li key={index}>
-        <a href={`http://localhost:8765${filePath}`} target="_blank" rel="noopener noreferrer">
-          {filePath.split('/').pop()} {/* Shows only the filename */}
-        </a>
-      </li>
-    ))}
+  <ul className="attachments-list">
+    {attachments.map((filePath, index) => {
+      const fileName = filePath.split('/').pop();
+      const fileUrl = `http://localhost:8765${filePath}`;
+      const isImage = /\.(png|jpe?g|gif|bmp|webp)$/i.test(fileName || '');
+
+      return (
+        <li key={index} className="attachment-item">
+          {isImage ? (
+            <img
+              src={fileUrl}
+              alt={fileName || 'attachment'}
+              style={{ width: '150px', height: 'auto', marginBottom: '10px' }}
+            />
+          ) : (
+            <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+              {fileName}
+            </a>
+          )}
+        </li>
+      );
+    })}
   </ul>
 ) : (
   <p>No attachments available.</p>
 )}
 
 
-@GetMapping("/uploads/{folder}/{filename}")
-public ResponseEntity<Resource> serveFile(@PathVariable String folder, @PathVariable String filename) {
-    Path file = Paths.get("uploads", folder).resolve(filename);
+
+
+@GetMapping("/uploads/**")
+public ResponseEntity<Resource> serveFile(HttpServletRequest request) {
+    String path = request.getRequestURI().replace("/uploads/", "");
+    Path file = Paths.get("uploads").resolve(path).normalize();
     Resource resource = new UrlResource(file.toUri());
 
     return ResponseEntity.ok()
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+        .contentType(MediaTypeFactory.getMediaType(resource).orElse(MediaType.APPLICATION_OCTET_STREAM))
         .body(resource);
 }
