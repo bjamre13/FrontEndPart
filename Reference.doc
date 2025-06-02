@@ -1,17 +1,13 @@
-@Configuration
-public class WebConfig implements WebMvcConfigurer {
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/uploads/**")
-                .allowedOrigins("http://localhost:3000")
-                .allowedMethods("GET")
-                .allowedHeaders("*");
+@GetMapping("/uploads/{filename:.+}")
+public ResponseEntity<Resource> serveFile(@PathVariable String filename) throws MalformedURLException {
+    Path file = Paths.get("uploads").resolve(filename).normalize();
+    Resource resource = new UrlResource(file.toUri());
+
+    if (!resource.exists()) {
+        throw new RuntimeException("File not found: " + filename);
     }
+
+    return ResponseEntity.ok()
+            .contentType(MediaTypeFactory.getMediaType(resource).orElse(MediaType.APPLICATION_OCTET_STREAM))
+            .body(resource);
 }
-
-
-<img
-  src={`http://localhost:8765/uploads/image1.png`}
-  alt="Uploaded Image"
-  style={{ width: '200px', height: 'auto' }}
-/>
