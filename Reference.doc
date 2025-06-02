@@ -1,24 +1,362 @@
-<h3>Attachments</h3>
-{attachments && attachments.length > 0 ? (
-  <div className="attachments">
-    {attachments.map((file: string, index: number) => {
-      const fileName = file.split('/').pop(); // gets "image1.png"
-      const fileUrl = `http://localhost:8765/uploads/${fileName}`;
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import '../pages/AgentDashboard.css';
 
-      return (
-        <div key={index} className="attachment-item">
-          <img
-            src={fileUrl}
-            alt={`Attachment ${index + 1}`}
-            className="attachment-image"
-            onError={(e) => {
-              e.currentTarget.src = "/fallback.png"; // optional fallback image
-            }}
-          />
-        </div>
-      );
-    })}
-  </div>
-) : (
-  <p>No attachments available.</p>
-)}
+interface Ticket {
+  id: string;
+  customer: string;
+  title: string;
+  status: 'New' | 'Pending' | 'In Progress' | 'Resolved';
+  priority: 'Low' | 'Medium' | 'High';
+  age: string;
+}
+
+export default function AgentDashboard() {
+  const navigate = useNavigate();
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const agentId = localStorage.getItem('agentId') || '1019'; // Fallback to mock agent ID
+
+  useEffect(() => {
+    fetch(`http://localhost:8765/api/tickets/agent/${agentId}`, {
+      credentials: 'include',
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const formattedTickets = data.map((ticket: any) => ({
+          id: ticket.ticketId,
+          customer: ticket.customerName || `User ${ticket.userId}`,
+          title: ticket.title,
+          status: ticket.status,
+          priority: ticket.priority,
+          age: calculateTicketAge(ticket.createdAt),
+        }));
+        setTickets(formattedTickets);
+      })
+      .catch((err) => {
+        console.error('Error fetching agent tickets:', err);
+      });
+  }, [agentId]);
+
+  const calculateTicketAge = (createdAt: string) => {
+    const created = new Date(createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - created.getTime();
+    const diffHrs = Math.floor(diffMs / 3600000);
+    const diffMin = Math.floor((diffMs % 3600000) / 60000);
+    return `${diffHrs}h ${diffMin}m`;
+  };
+
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.value;
+    if (selected === 'admin') navigate('/admin');
+    else if (selected === 'agent') navigate('/agent');
+    else if (selected === 'user') navigate('/user');
+  };
+
+  return (
+    <div className="dashboard-container">
+      <header className="navbar">
+        <h1>Support Ticket System</h1>
+        <nav className="nav-links">
+          <a href="#">Dashboard</a>
+          <a href="#">Notifications</a>
+          <a href="#">Profile</a>
+          <div className="profile-role-dropdown">
+            <select id="role_select" onChange={handleRoleChange}>
+              <option value="agent">Agent</option>
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </nav>
+      </header>
+
+      <div className="dashboard-content">
+        <aside className="sidebar">
+          <h2>Agent Tools</h2>
+          <ul>
+            <li><a href="#">My Assigned Tickets</a></li>
+            <li><a href="#">All Open Tickets</a></li>
+            <li><a href="#">Search Tickets</a></li>
+            <li><a href="#">My Performance</a></li>
+            <li><a href="#">Calendar/Reminders</a></li>
+          </ul>
+        </aside>
+
+        <main className="main-content">
+          <section className="workload">
+            <h2>My Workload</h2>
+            <div className="status-boxes">
+              <button className="assigned">12 Assigned</button>
+              <button className="urgent">3 Urgent</button>
+              <button className="pending">5 Pending</button>
+              <button className="resolved">4 Resolved</button>
+            </div>
+          </section>
+
+          <section className="assigned-tickets">
+            <div className="section-header">
+              <h2>Assigned Tickets</h2>
+              <div className="actions">
+                <select>
+                  <option>Filter</option>
+                  <option>Status</option>
+                  <option>Priority</option>
+                </select>
+                <select>
+                  <option>Sort</option>
+                  <option>Newest</option>
+                  <option>Oldest</option>
+                </select>
+              </div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Customer</th>
+                  <th>Title</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                  <th>Age</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tickets.map((ticket) => (
+                  <tr key={ticket.id}>
+                    <td>{ticket.id}</td>
+                    <td>{ticket.customer}</td>
+                    <td>{ticket.title}</td>
+                    <td>
+                      <span className={`status ${ticket.status.toLowerCase().replace(/\s/g, '-')}`}>
+                        {ticket.status}
+                      </span>
+                    </td>
+                    <td>{ticket.priority}</td>
+                    <td>{ticket.age}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+
+
+
+@GetMapping("/api/tickets/agent/{agentId}")
+public ResponseEntity<List<TicketDTO>> getTicketsByAgent(@PathVariable Long agentId) {
+    List<Ticket> tickets = ticketRepository.findByAgentId(agentId);
+    List<TicketDTO> result = tickets.stream().map(ticket -> {
+        TicketDTO dto = new TicketDTO();
+        dto.setTicketId(ticket.getTicketId());
+        dto.setTitle(ticket.getTitle());
+        dto.setStatus(ticket.getStatus());
+        dto.setPriority(ticket.getPriority());
+        dto.setCreatedAt(ticket.getCreatedAt());
+        dto.setUserId(ticket.getUser().getUserId());
+        dto.setCustomerName(ticket.getUser().getName());
+        return dto;
+    }).toList();
+    return ResponseEntity.ok(result);
+}
+
+
+
+
+/* AgentDashboard.css */
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f6f8;
+}
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to right, #0d47a1, #1976d2);
+  color: #fff;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  margin: 0 1rem;
+  font-weight: 500;
+}
+
+.profile-role-dropdown select {
+  padding: 5px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+/* Layout */
+.dashboard-content {
+  display: flex;
+  flex: 1;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background-color: #ffffff;
+  padding: 20px;
+  border-right: 1px solid #e0e0e0;
+}
+
+.sidebar h2 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.sidebar ul li {
+  margin-bottom: 12px;
+}
+
+.sidebar ul li a {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.sidebar ul li a:hover {
+  text-decoration: underline;
+}
+
+/* Main content */
+.main-content {
+  flex: 1;
+  padding: 30px;
+  background-color: #f9fafb;
+  overflow-y: auto;
+}
+
+/* Workload summary */
+.workload h2 {
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+.status-boxes {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.status-boxes button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.status-boxes .assigned {
+  background-color: #2196f3;
+}
+
+.status-boxes .urgent {
+  background-color: #f44336;
+}
+
+.status-boxes .pending {
+  background-color: #ff9800;
+}
+
+.status-boxes .resolved {
+  background-color: #4caf50;
+}
+
+/* Tickets section */
+.assigned-tickets h2 {
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.actions select {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Ticket table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+thead {
+  background-color: #eeeeee;
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+  font-size: 14px;
+}
+
+tr:nth-child(even) {
+  background-color: #f5f5f5;
+}
+
+.status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: white;
+  font-weight: bold;
+  text-transform: capitalize;
+  font-size: 13px;
+}
+
+.status.new {
+  background-color: #42a5f5;
+}
+
+.status.pending {
+  background-color: #ffa726;
+}
+
+.status.in-progress {
+  background-color: #7e57c2;
+}
+
+.status.resolved {
+  background-color: #66bb6a;
+}
+
+
+
