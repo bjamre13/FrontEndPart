@@ -1,13 +1,60 @@
-@GetMapping("/uploads/{filename:.+}")
-public ResponseEntity<Resource> serveFile(@PathVariable String filename) throws MalformedURLException {
-    Path file = Paths.get("uploads").resolve(filename).normalize();
-    Resource resource = new UrlResource(file.toUri());
+<h3>Attachments</h3>
+{ticket.attachments && ticket.attachments.length > 0 ? (
+  <div className="attachments">
+    {ticket.attachments.map((file: string, index: number) => {
+      const fileName = file.split('/').pop(); // Extract just the filename
+      const fileUrl = `http://localhost:8765${file}`; // Full URL to serve file
 
-    if (!resource.exists()) {
-        throw new RuntimeException("File not found: " + filename);
-    }
+      const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName || '');
 
-    return ResponseEntity.ok()
-            .contentType(MediaTypeFactory.getMediaType(resource).orElse(MediaType.APPLICATION_OCTET_STREAM))
-            .body(resource);
+      return (
+        <div key={index} className="attachment-item">
+          {isImage ? (
+            <img src={fileUrl} alt={`Attachment ${index + 1}`} className="attachment-image" />
+          ) : (
+            <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="attachment-link">
+              {fileName}
+            </a>
+          )}
+        </div>
+      );
+    })}
+  </div>
+) : (
+  <p>No attachments found.</p>
+)}
+
+
+
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.attachment-item {
+  text-align: center;
+  max-width: 180px;
+}
+
+.attachment-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.attachment-link {
+  display: inline-block;
+  padding: 6px 10px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  color: #007bff;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.attachment-link:hover {
+  background-color: #e6e6e6;
 }
