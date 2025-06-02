@@ -1,42 +1,17 @@
-<h3>Attachments</h3>
-{attachments.length > 0 ? (
-  <ul className="attachments-list">
-    {attachments.map((filePath, index) => {
-      const fileName = filePath.split('/').pop();
-      const fileUrl = `http://localhost:8765${filePath}`;
-      const isImage = /\.(png|jpe?g|gif|bmp|webp)$/i.test(fileName || '');
-
-      return (
-        <li key={index} className="attachment-item">
-          {isImage ? (
-            <img
-              src={fileUrl}
-              alt={fileName || 'attachment'}
-              style={{ width: '150px', height: 'auto', marginBottom: '10px' }}
-            />
-          ) : (
-            <a href={fileUrl} target="_blank" rel="noopener noreferrer">
-              {fileName}
-            </a>
-          )}
-        </li>
-      );
-    })}
-  </ul>
-) : (
-  <p>No attachments available.</p>
-)}
-
-
-
-
-@GetMapping("/uploads/**")
-public ResponseEntity<Resource> serveFile(HttpServletRequest request) {
-    String path = request.getRequestURI().replace("/uploads/", "");
-    Path file = Paths.get("uploads").resolve(path).normalize();
-    Resource resource = new UrlResource(file.toUri());
-
-    return ResponseEntity.ok()
-        .contentType(MediaTypeFactory.getMediaType(resource).orElse(MediaType.APPLICATION_OCTET_STREAM))
-        .body(resource);
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/uploads/**")
+                .allowedOrigins("http://localhost:3000")
+                .allowedMethods("GET")
+                .allowedHeaders("*");
+    }
 }
+
+
+<img
+  src={`http://localhost:8765/uploads/image1.png`}
+  alt="Uploaded Image"
+  style={{ width: '200px', height: 'auto' }}
+/>
