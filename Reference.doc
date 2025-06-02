@@ -190,3 +190,61 @@ public ResponseEntity<?> deleteUser(@PathVariable Long userId)
   padding: 6px 10px;
   border-radius: 4px;
 }
+
+
+
+package com.customersupportticketsystem.controller;
+
+import com.customersupportticketsystem.entity.User;
+import com.customersupportticketsystem.entity.Role;
+import com.customersupportticketsystem.repository.UserRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
+
+@RestController
+@RequestMapping("/api/users")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+public class UserController {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    // ✅ GET: All users
+    @GetMapping
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userRepository.findAll());
+    }
+
+    // ✅ PUT: Update roles for a user
+    @PutMapping("/{userId}/roles")
+    public ResponseEntity<String> updateUserRoles(
+            @PathVariable Long userId,
+            @RequestBody Set<Role> newRoles) {
+
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = optionalUser.get();
+        user.setRoles(newRoles);
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Roles updated successfully");
+    }
+
+    // ✅ DELETE: Delete a user
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
+        if (!userRepository.existsById(userId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        userRepository.deleteById(userId);
+        return ResponseEntity.ok("User deleted successfully");
+    }
+}
