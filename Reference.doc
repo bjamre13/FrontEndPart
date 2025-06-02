@@ -1,39 +1,192 @@
 import React, { useEffect, useState } from 'react';
+import './ManageUsersPage.css';
 
-interface Ticket {
-  ticketId: number;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  createdAt: string;
-  updatedAt: string;
+type UserRole = 'customer' | 'agent' | 'admin';
+
+interface User {
   userId: number;
-  agentId: number | null;
+  name: string;
+  email: string;
+  roles: UserRole[];
 }
 
-export default function AgentDashboard() {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [userId, setUserId] = useState<number | null>(null);
+const ROLES: UserRole[] = ['customer', 'agent', 'admin'];
+
+const ManageUsersPage: React.FC = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (user && user.userId) {
-      setUserId(user.userId);
-
-      // Now fetch the tickets dynamically for this agent
-      fetch(`http://localhost:8765/api/tickets/user/${user.userId}`, {
-        credentials: 'include',
+    fetch('http://localhost:8765/api/users', {
+      credentials: 'include',
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch users');
+        return res.json();
       })
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch tickets');
-          return res.json();
-        })
-        .then(data => setTickets(data))
-        .catch(err => console.error('Error fetching tickets:', err));
-    } else {
-      console.error('User not found in localStorage');
-    }
+      .then(setUsers)
+      .catch((err) => setError(err.message))
+      .finally(() => setIsLoading(false));
   }, []);
 
+  const handleRoleChange = (userId: number, newRole: UserRole) => {
+    const user = users.find(u => u.userId === userId);
+    if (!user) return;
 
+    const updatedRoles = [newRole]; // Replace existing roles with the new one for simplicity
+
+    fetch(`http://localhost:8765/api/users/${userId}/roles`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(updatedRoles),
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to update role');
+        // Reflect changes in UI
+        const updated = users.map(u =>
+          u.userId === userId ? { ...u, roles: updatedRoles } : u
+        );
+        setUsers(updated);
+      })
+      .catch(err => alert(err.message));
+  };
+
+  const handleDeleteUser = (userId: number) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+
+    fetch(`http://localhost:8765/api/users/${userId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to delete user');
+        setUsers(users.filter(u => u.userId !== userId));
+      })
+      .catch(err => alert(err.message));
+  };
+
+  return (
+    <div className="manage-users-container">
+      <div className="manage-users-header">
+        <h2>User Management</h2>
+        <button className="add-user-button" disabled>Add New User</button>
+      </div>
+
+      {isLoading ? (
+        <div className="loading">Loading Users...</div>
+      ) : error ? (
+        <p className="error">{error}</p>
+      ) : (
+        <div className="table-wrapper">
+          <table className="user-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th className="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map(user => (
+                <tr key={user.userId}>
+                  <td>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td>
+                    <select
+                      value={user.roles[0]}
+                      onChange={(e) =>
+                        handleRoleChange(user.userId, e.target.value as UserRole)
+                      }
+                      disabled={isLoading}
+                    >
+                      {ROLES.map(role => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="text-right">
+                    <button disabled className="action-button">Edit</button>
+                    <button
+                      onClick={() => handleDeleteUser(user.userId)}
+                      className="delete-button"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {users.length === 0 && <p className="no-users">No users found.</p>}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ManageUsersPage;
+
+
+
+// GET all users
+@GetMapping("/api/users")
+public List<User> getAllUsers();
+
+// PUT update roles for a user
+@PutMapping("/api/users/{userId}/roles")
+public ResponseEntity<?> updateUserRoles(@PathVariable Long userId, @RequestBody Set<Role> roles);
+
+// DELETE a user
+@DeleteMapping("/api/users/{userId}")
+public ResponseEntity<?> deleteUser(@PathVariable Long userId)
+
+
+
+
+.manage-users-container {
+  padding: 20px;
+}
+
+.manage-users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.add-user-button {
+  padding: 6px 12px;
+  background-color: #aaa;
+  color: white;
+  border: none;
+  border-radius: 4px;
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.user-table th,
+.user-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+.action-button,
+.delete-button {
+  margin-left: 10px;
+}
+
+.delete-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
