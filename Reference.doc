@@ -1,20 +1,211 @@
-import React, { useEffect, useState } from 'react'; import './ManageUsersPage.css';
+import React from 'react';
+import './HomePage.css';
 
-export type UserRole = 'customer' | 'agent' | 'admin';
+const HomePage: React.FC = () => {
+  return (
+    <div className="homepage">
+      <section className="hero-section">
+        <div className="hero-content">
+          <h1>
+            Streamline your <span className="highlight">customer support</span>
+          </h1>
+          <p>
+            Manage support tickets efficiently, resolve customer issues faster,
+            and deliver exceptional service with our comprehensive ticket
+            management system.
+          </p>
+          <div className="hero-buttons">
+            <button className="primary-btn">Get started</button>
+            <button className="secondary-btn">Learn more</button>
+          </div>
+        </div>
+        <div className="hero-image">
+          <div className="graphic-placeholder">
+            <div className="line"></div>
+            <div className="line short"></div>
+            <div className="line"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
 
-export interface User { id: string; name: string; email: string; role: UserRole; }
+export default HomePage;
 
-const ROLES: UserRole[] = ['customer', 'agent', 'admin'];
 
-const ManageUsersPage: React.FC = () => { const [users, setUsers] = useState<User[]>([]); const [isLoading, setIsLoading] = useState(true);
+.homepage {
+  font-family: Arial, sans-serif;
+  padding: 2rem;
+  background-color: #f9fafb;
+}
 
-useEffect(() => { fetch('http://localhost:8765/api/users') .then(res => res.json()) .then(data => setUsers(data)) .catch(err => console.error('Error fetching users:', err)) .finally(() => setIsLoading(false)); }, []);
+.hero-section {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
 
-const handleRoleChange = (userId: string, newRole: UserRole) => { setIsLoading(true); fetch(http://localhost:8765/api/users/${userId}/roles, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify([newRole]) }) .then(() => { const updatedUsers = users.map(user => user.id === userId ? { ...user, role: newRole } : user ); setUsers(updatedUsers); }) .catch(err => console.error('Error updating role:', err)) .finally(() => setIsLoading(false)); };
+.hero-content {
+  flex: 1 1 400px;
+}
 
-const getUserStatus = (role: string): string => { return role === 'agent' ? 'Active' : 'Inactive'; };
+.hero-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
 
-return ( <div className="manage-users-container"> <div className="manage-users-header"> <h2>User Management</h2> </div> <p className="description">View, edit roles, and manage users in the system.</p> {isLoading ? ( <div className="loading">Loading Users...</div> ) : ( <div className="table-wrapper"> <table className="user-table"> <thead> <tr> <th>Name</th> <th>Email</th> <th>Role</th> <th>Status</th> <th className="text-right">Actions</th> </tr> </thead> <tbody> {users.map(user => ( <tr key={user.id}> <td className="font-medium">{user.name}</td> <td>{user.email}</td> <td> <select value={user.role} onChange={e => handleRoleChange(user.id, e.target.value as UserRole)} disabled={isLoading} > {ROLES.map(role => ( <option key={role} value={role}>{role}</option> ))} </select> </td> <td> <span className={getUserStatus(user.role) === 'Active' ? 'status-active' : 'status-inactive'}> {getUserStatus(user.role)} </span> </td> <td className="text-right"> <button disabled className="action-button">Edit</button> <button className="delete-button" disabled={isLoading}>Delete</button> </td> </tr> ))} </tbody> </table> {users.length === 0 && <p className="no-users">No users found.</p>} </div> )} </div> ); };
+.highlight {
+  color: #2563eb;
+  font-weight: bold;
+}
 
-export default ManageUsersPage;
+.hero-content p {
+  font-size: 1rem;
+  color: #374151;
+  margin-bottom: 1.5rem;
+}
 
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.primary-btn {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.secondary-btn {
+  background-color: #e5e7eb;
+  color: #111827;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.hero-image {
+  flex: 1 1 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.graphic-placeholder {
+  width: 100%;
+  max-width: 300px;
+  height: 150px;
+  background-color: #e0f2fe;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.line {
+  height: 10px;
+  background-color: #3b82f6;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+
+.line.short {
+  width: 60%;
+}
+
+
+
+
+import React from 'react';
+import './Navbar.css';
+
+const Navbar: React.FC = () => {
+  return (
+    <header className="navbar">
+      <div className="logo">Customer Ticket Support Desk</div>
+      <nav className="nav-links">
+        <a href="/">Home</a>
+        <a href="#">Features</a>
+        <a href="#">Pricing</a>
+        <a href="#">Contact</a>
+      </nav>
+      <div className="nav-buttons">
+        <button className="login-btn">Log in</button>
+      </div>
+    </header>
+  );
+};
+
+export default Navbar;
+
+
+
+.navbar {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #111827;
+  color: white;
+}
+
+.logo {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.nav-buttons {
+  margin-left: auto;
+}
+
+.login-btn {
+  background-color: #10b981;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Responsive for smaller screens */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .nav-buttons {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+  }
+}
