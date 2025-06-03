@@ -1,156 +1,17 @@
-/* Prevent horizontal scroll */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+public String updateUserRoles(Long userId, Set<RoleType> newRoles) {
+    Optional<User> optionalUser = userRepository.findById(userId);
+    if (optionalUser.isEmpty()) {
+        return "User doesn't exist";
+    }
 
-body, html {
-  overflow-x: hidden;
-  font-family: Arial, sans-serif;
-}
+    User user = optionalUser.get();
 
-.homepage-container {
-  width: 100%;
-  min-height: 100vh;
-  background-color: #f9fafb;
-  padding: 0 1rem;
-}
+    // Combine existing roles with new roles (ensures uniqueness via Set)
+    Set<RoleType> updatedRoles = new HashSet<>(user.getRoles());
+    updatedRoles.addAll(newRoles); // adds new roles without removing existing ones
 
-/* Header styles */
-.homepage-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 0;
-  max-width: 1200px;
-  margin: 0 auto;
-}
+    user.setRoles(updatedRoles);
+    userRepository.save(user);
 
-.logo {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #1e3a8a;
-}
-
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.nav-links a {
-  text-decoration: none;
-  color: #111827;
-  font-weight: 500;
-}
-
-.login-btn {
-  background-color: #10b981;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-/* Hero section */
-.hero-section {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 2rem auto;
-}
-
-.hero-content {
-  flex: 1 1 400px;
-}
-
-.hero-content h1 {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-.highlight {
-  color: #2563eb;
-  font-weight: bold;
-}
-
-.hero-content p {
-  font-size: 1rem;
-  color: #374151;
-  margin-bottom: 1.5rem;
-}
-
-.hero-buttons {
-  display: flex;
-  gap: 1rem;
-}
-
-.primary-btn {
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  font-weight: bold;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.secondary-btn {
-  background-color: #e5e7eb;
-  color: #111827;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  font-weight: bold;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.hero-image {
-  flex: 1 1 300px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.graphic-placeholder {
-  width: 100%;
-  max-width: 300px;
-  height: 150px;
-  background-color: #e0f2fe;
-  border-radius: 10px;
-  padding: 1rem;
-}
-
-.line {
-  height: 10px;
-  background-color: #3b82f6;
-  margin: 10px 0;
-  border-radius: 5px;
-}
-
-.line.short {
-  width: 60%;
-}
-
-/* Responsive layout */
-@media (max-width: 768px) {
-  .hero-section {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .nav-links {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .login-btn {
-    margin-top: 0.5rem;
-  }
+    return "Roles updated successfully";
 }
