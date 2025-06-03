@@ -1,51 +1,69 @@
-import React from 'react';
-import './HomePage.css';
-
-const HomePage: React.FC = () => {
-  return (
-    <div className="homepage">
-      <section className="hero-section">
-        <div className="hero-content">
-          <h1>
-            Streamline your <span className="highlight">customer support</span>
-          </h1>
-          <p>
-            Manage support tickets efficiently, resolve customer issues faster,
-            and deliver exceptional service with our comprehensive ticket
-            management system.
-          </p>
-          <div className="hero-buttons">
-            <button className="primary-btn">Get started</button>
-            <button className="secondary-btn">Learn more</button>
-          </div>
-        </div>
-        <div className="hero-image">
-          <div className="graphic-placeholder">
-            <div className="line"></div>
-            <div className="line short"></div>
-            <div className="line"></div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-};
-
-export default HomePage;
-
-
-.homepage {
-  font-family: Arial, sans-serif;
-  padding: 2rem;
-  background-color: #f9fafb;
+/* Prevent horizontal scroll */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
+body, html {
+  overflow-x: hidden;
+  font-family: Arial, sans-serif;
+}
+
+.homepage-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f9fafb;
+  padding: 0 1rem;
+}
+
+/* Header styles */
+.homepage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1e3a8a;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #111827;
+  font-weight: 500;
+}
+
+.login-btn {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Hero section */
 .hero-section {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 2rem;
+  max-width: 1200px;
+  margin: 2rem auto;
 }
 
 .hero-content {
@@ -120,92 +138,19 @@ export default HomePage;
   width: 60%;
 }
 
-
-
-
-import React from 'react';
-import './Navbar.css';
-
-const Navbar: React.FC = () => {
-  return (
-    <header className="navbar">
-      <div className="logo">Customer Ticket Support Desk</div>
-      <nav className="nav-links">
-        <a href="/">Home</a>
-        <a href="#">Features</a>
-        <a href="#">Pricing</a>
-        <a href="#">Contact</a>
-      </nav>
-      <div className="nav-buttons">
-        <button className="login-btn">Log in</button>
-      </div>
-    </header>
-  );
-};
-
-export default Navbar;
-
-
-
-.navbar {
-  width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background-color: #111827;
-  color: white;
-}
-
-.logo {
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.nav-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.nav-links a {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.nav-buttons {
-  margin-left: auto;
-}
-
-.login-btn {
-  background-color: #10b981;
-  border: none;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-/* Responsive for smaller screens */
+/* Responsive layout */
 @media (max-width: 768px) {
-  .navbar {
+  .hero-section {
     flex-direction: column;
-    align-items: flex-start;
+    text-align: center;
   }
 
   .nav-links {
-    flex-direction: column;
-    width: 100%;
-    margin-top: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
-  .nav-buttons {
-    width: 100%;
-    display: flex;
-    justify-content: flex-end;
+  .login-btn {
     margin-top: 0.5rem;
   }
 }
